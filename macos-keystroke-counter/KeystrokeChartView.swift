@@ -20,76 +20,87 @@ struct KeystrokeChartView: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Today's count highlight section
-            if highlightToday {
-                VStack(spacing: 5) {
-                    Text("Today's Keystrokes")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(todayCount)")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
-                .padding([.horizontal, .top])
-            }
-            
-            Text("History")
-                .font(.title)
-                .padding(.top, 4)
-            
-            Picker("Time Period", selection: $selectedDays) {
-                Text("7 Days").tag(7)
-                Text("14 Days").tag(14)
-                Text("30 Days").tag(30)
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
-            .onChange(of: selectedDays) { _ in
-                loadData()
-            }
-            
-            if historyData.isEmpty {
-                Text("No history data available")
-                    .foregroundColor(.secondary)
-                    .padding()
-                Spacer()
-            } else {
-                // Chart in a rounded blurred container
-                VStack {
-                    Chart {
-                        ForEach(historyData, id: \.date) { item in
-                            BarMark(
-                                x: .value("Date", formatDate(item.date)),
-                                y: .value("Keystrokes", item.count)
-                            )
-                            .foregroundStyle(Color.blue.gradient)
-                        }
+        ScrollView {
+            VStack(spacing: 16) {
+                // Today's count highlight section
+                if highlightToday {
+                    VStack(spacing: 5) {
+                        Text("Today's Keystrokes")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        Text("\(todayCount)")
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
                     }
-                    .frame(height: 250)
+                    .frame(maxWidth: .infinity)
                     .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                    .padding([.horizontal, .top])
                 }
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
-                .padding(.horizontal)
                 
-                // Removed list of days
-                Spacer()
+                Text("History")
+                    .font(.title)
+                    .padding(.top, 4)
+                
+                Picker("Time Period", selection: $selectedDays) {
+                    Text("7 Days").tag(7)
+                    Text("14 Days").tag(14)
+                    Text("30 Days").tag(30)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.horizontal)
+                .onChange(of: selectedDays) { _ in
+                    loadData()
+                }
+                
+                if historyData.isEmpty {
+                    Text("No history data available")
+                        .foregroundColor(.secondary)
+                        .padding()
+                    Spacer(minLength: 100)
+                } else {
+                    // Chart in a rounded blurred container
+                    VStack {
+                        Chart {
+                            ForEach(historyData, id: \.date) { item in
+                                BarMark(
+                                    x: .value("Date", formatDate(item.date)),
+                                    y: .value("Keystrokes", item.count)
+                                )
+                                .foregroundStyle(Color.blue.gradient)
+                            }
+                        }
+                        .frame(height: 250)
+                        .padding()
+                    }
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    
+                    Spacer(minLength: 20)
+                }
+                
+                // Improved Quit button styling
+                Button(action: {
+                    NSApp.terminate(nil)
+                }) {
+                    Text("Quit")
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .background(Color.red.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(8)
+                .padding([.horizontal, .bottom], 16)
+                .padding(.top, 8)
             }
-            
-            // Add Quit button
-            Button("Quit") {
-                NSApp.terminate(nil)
-            }
-            .buttonStyle(.borderedProminent)
-            .padding(.bottom)
+            .frame(width: 360)
+            .padding(.bottom, 8)
         }
-        .frame(width: 360)
         .onAppear {
             loadData()
         }
