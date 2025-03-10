@@ -260,7 +260,7 @@ struct TopKeysView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Top 10 Most Used Keys")
+            Text("Most Used Keys")
                 .font(.title2)
                 .padding(.horizontal)
             

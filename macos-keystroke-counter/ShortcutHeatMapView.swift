@@ -13,7 +13,7 @@ struct ShortcutHeatMapView: View {
             
             // Top 10 shortcuts section
             VStack(alignment: .leading, spacing: 8) {
-                Text("Top 10 Most Used Shortcuts")
+                Text("Most Used Shortcuts")
                     .font(.headline)
                     .padding(.bottom, 4)
                 
