@@ -14,6 +14,7 @@
 		3969CB002D7F11EB0007E249 /* KeystrokeHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */; };
 		3969CB022D7F2EEC0007E249 /* KeyUsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */; };
 		3969CB042D7F2EFD0007E249 /* KeyboardHeatMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */; };
+		3969CB082D7F42AA0007E249 /* ShortcutHeatMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB072D7F42AA0007E249 /* ShortcutHeatMapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +28,7 @@
 		3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeystrokeHistoryManager.swift; sourceTree = "<group>"; };
 		3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyUsageTracker.swift; sourceTree = "<group>"; };
 		3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyboardHeatMapView.swift; sourceTree = "<group>"; };
-		3969CB042D7F2F100007E249 /* ShortcutHeatMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutHeatMapView.swift; sourceTree = "<group>"; };
+		3969CB072D7F42AA0007E249 /* ShortcutHeatMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutHeatMapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,10 +64,10 @@
 				2848C54F2B081B46007ECFF0 /* Info.plist */,
 				285A43142B0568720060A160 /* macos_keystroke_counterApp.swift */,
 				3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */,
-				3969CB042D7F2F100007E249 /* ShortcutHeatMapView.swift */,
 				3969CAFD2D7F11E40007E249 /* KeystrokeChartView.swift */,
 				3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */,
 				3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */,
+				3969CB072D7F42AA0007E249 /* ShortcutHeatMapView.swift */,
 				285A43182B0568780060A160 /* Assets.xcassets */,
 				285A431D2B0568780060A160 /* macos_keystroke_counter.entitlements */,
 				285A431A2B0568780060A160 /* Preview Content */,
@@ -153,7 +154,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3969CB042D7F2EFD0007E249 /* KeyboardHeatMapView.swift in Sources */,
-				3969CB052D7F2F100007E249 /* ShortcutHeatMapView.swift in Sources */,
+				3969CB082D7F42AA0007E249 /* ShortcutHeatMapView.swift in Sources */,
 				3969CB002D7F11EB0007E249 /* KeystrokeHistoryManager.swift in Sources */,
 				285A43152B0568720060A160 /* macos_keystroke_counterApp.swift in Sources */,
 				3969CB022D7F2EEC0007E249 /* KeyUsageTracker.swift in Sources */,
