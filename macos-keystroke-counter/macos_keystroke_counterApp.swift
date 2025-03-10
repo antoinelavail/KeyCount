@@ -1,5 +1,6 @@
 import SwiftUI
 import ApplicationServices
+import Charts
 
 @main
 struct KeystrokeTrackerApp: App {
@@ -7,13 +8,13 @@ struct KeystrokeTrackerApp: App {
 
     var body: some Scene {
         Settings {
-            // Removed SettingsWindow reference
+            KeystrokeChartView()
         }
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandGroup(after: .newItem) {
-                Button("Settings") {
-                    // Implement action for Settings button if needed
+                Button("Keystroke History") {
+                    NSApp.sendAction(#selector(AppDelegate.showHistoryWindow), to: nil, from: nil)
                 }
             }
         }
@@ -23,6 +24,7 @@ struct KeystrokeTrackerApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var activity: NSObjectProtocol?
     var mainWindow: NSWindow!
+    var historyWindow: NSWindow?
     static private(set) var instance: AppDelegate!
     lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var updateInterval = Int(UserDefaults.standard.string(forKey: "updateInterval") ?? "30") ?? 30
@@ -42,12 +44,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let sendingUpdatesEnabledKey = "sendingUpdatesEnabled"
     let updateEndpointURIKey = "updateEndpointURI"
     let updateIntervalKey = "updateInterval"
-    
-    private var currentDateKey: String {
-       let dateFormatter = DateFormatter()
-       dateFormatter.dateFormat = "yyyy-MM-dd"
-       return dateFormatter.string(from: Date())
-    }
     
     var clearKeystrokesDaily: Bool {
         get {
@@ -80,6 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         self.endpointURL = UserDefaults.standard.string(forKey: updateEndpointURIKey) ?? ""
         self.keystrokeData = Array(repeating: 0, count: updateInterval * updatePrecision)
         super.init()
+        AppDelegate.instance = self
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -131,6 +128,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         if UserDefaults.standard.bool(forKey: self.sendingUpdatesEnabledKey) {
             setupTimeIndexIncrementer()
         }
+        
+        // Check if we need to reset daily count
+        if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
+            keystrokeCount = 0
+            updateKeystrokesCount()
+        }
+    }
+    
+    @objc func showHistoryWindow() {
+        if historyWindow == nil {
+            historyWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            historyWindow?.title = "Keystroke History"
+            historyWindow?.center()
+            
+            let hostingView = NSHostingView(rootView: KeystrokeChartView())
+            historyWindow?.contentView = hostingView
+        }
+        
+        historyWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
     
     func updateKeystrokesCount() {
@@ -174,21 +196,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         updateKeystrokesCount()
 
         // Check if it's a new day
-        if clearKeystrokesDaily {
-            if let lastDate = UserDefaults.standard.string(forKey: "lastDate") {
-                if lastDate != currentDateKey {
-                    // Reset daily keystrokes count
-                    keystrokeCount = 0
-                    UserDefaults.standard.set(currentDateKey, forKey: "lastDate")
-
-                    // Store in keystroke history
-                    let keystrokesHistoryKey = "keystrokesHistory_\(currentDateKey)"
-                    let dailyKeystrokes = UserDefaults.standard.integer(forKey: "keystrokesToday")
-                    UserDefaults.standard.set(dailyKeystrokes, forKey: keystrokesHistoryKey)
-                }
-            } else {
-                UserDefaults.standard.set(currentDateKey, forKey: "lastDate")
-            }
+        if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
+            // Save yesterday's count
+            KeystrokeHistoryManager.shared.saveDailyCount(keystrokeCount)
+            
+            // Reset daily keystrokes count
+            keystrokeCount = 1  // Set to 1 because we just counted a keystroke
         }
     }
     
@@ -270,8 +283,11 @@ class ApplicationMenu: ObservableObject {
     func buildMenu() {
         menu = NSMenu()
 
-        let settingsItem = NSMenuItem(title: "Reset Keystrokes", action: #selector(resetKeystrokes), keyEquivalent: "")
-        settingsItem.target = self
+        let resetItem = NSMenuItem(title: "Reset Keystrokes", action: #selector(resetKeystrokes), keyEquivalent: "")
+        resetItem.target = self
+
+        let historyItem = NSMenuItem(title: "View History", action: #selector(showHistory), keyEquivalent: "h")
+        historyItem.target = self
 
         let numbersOnlyItem = NSMenuItem(title: "Toggle Number Only", action: #selector(toggleShowNumbersOnly), keyEquivalent: "")
         numbersOnlyItem.target = self
@@ -280,11 +296,16 @@ class ApplicationMenu: ObservableObject {
         let websiteItem = NSMenuItem(title: "Website", action: #selector(goToWebsite), keyEquivalent: "")
         websiteItem.target = self
 
-        menu.addItem(settingsItem)
+        menu.addItem(resetItem)
+        menu.addItem(historyItem)
         menu.addItem(numbersOnlyItem)
         menu.addItem(websiteItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit", action: #selector(terminateApp), keyEquivalent: "q")
+    }
+    
+    @objc func showHistory() {
+        AppDelegate.instance.showHistoryWindow()
     }
 
     @objc func resetKeystrokes() {
