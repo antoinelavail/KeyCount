@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		285A43152B0568720060A160 /* macos_keystroke_counterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 285A43142B0568720060A160 /* macos_keystroke_counterApp.swift */; };
+		285A43152B0568720060A160 /* KeystrokeCounterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 285A43142B0568720060A160 /* KeystrokeCounterApp.swift */; };
 		285A43192B0568780060A160 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 285A43182B0568780060A160 /* Assets.xcassets */; };
 		285A431C2B0568780060A160 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 285A431B2B0568780060A160 /* Preview Assets.xcassets */; };
 		3969CAFE2D7F11E40007E249 /* KeystrokeChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CAFD2D7F11E40007E249 /* KeystrokeChartView.swift */; };
@@ -114,7 +114,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1420;
-				LastUpgradeCheck = 1420;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					285A43102B0568720060A160 = {
 						CreatedOnToolsVersion = 14.2;
@@ -202,9 +202,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -262,9 +264,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -291,6 +295,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"macos-keystroke-counter/Preview Content\"";
 				DEVELOPMENT_TEAM = 25DLK5GC54;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -321,6 +326,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"macos-keystroke-counter/Preview Content\"";
 				DEVELOPMENT_TEAM = 25DLK5GC54;
 				ENABLE_HARDENED_RUNTIME = YES;
