@@ -179,12 +179,26 @@ struct TopShortcutsView: View {
     @ObservedObject private var keyTracker = KeyUsageTracker.shared
     @State private var topShortcuts: [(shortcut: KeyboardShortcut, count: Int, description: String)] = []
     @State private var maxCount: Int = 0
+    @State private var selectedTimeRange: TimeRange = .today
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Most Used Shortcuts")
                 .font(.title2)
                 .padding(.horizontal)
+            
+            // Time range selector
+            Picker("Time Range", selection: $selectedTimeRange) {
+                Text(TimeRange.today.description).tag(TimeRange.today)
+                Text(TimeRange.lastWeek.description).tag(TimeRange.lastWeek)
+                Text(TimeRange.lastMonth.description).tag(TimeRange.lastMonth)
+                Text(TimeRange.allTime.description).tag(TimeRange.allTime)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            .onChange(of: selectedTimeRange) { _ in
+                loadShortcutData()
+            }
             
             if topShortcuts.isEmpty {
                 Text("No shortcut usage data available")
@@ -239,7 +253,7 @@ struct TopShortcutsView: View {
     }
     
     private func loadShortcutData() {
-        topShortcuts = keyTracker.getTopShortcuts(count: 10)
+        topShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 10, timeRange: selectedTimeRange)
         maxCount = topShortcuts.first?.count ?? 0
     }
     
@@ -249,20 +263,7 @@ struct TopShortcutsView: View {
     }
     
     private func shortcutColor(for index: Int) -> Color {
-        let colors: [Color] = [
-            Color(red: 0.95, green: 0.71, blue: 0.76),  // 1st - Pastel pink/red
-            Color(red: 0.95, green: 0.78, blue: 0.66),  // 2nd - Pastel orange
-            Color(red: 0.95, green: 0.95, blue: 0.7),   // 3rd - Pastel yellow
-            Color(red: 0.69, green: 0.9, blue: 0.69),   // 4th - Pastel green
-            Color(red: 0.68, green: 0.85, blue: 0.9),   // 5th - Pastel blue
-            Color(red: 0.8, green: 0.7, blue: 0.9),     // 6th - Pastel purple
-            Color(red: 0.9, green: 0.7, blue: 0.85),    // 7th - Pastel magenta
-            Color(red: 0.75, green: 0.88, blue: 0.8),   // 8th - Pastel teal
-            Color(red: 0.85, green: 0.8, blue: 0.75),   // 9th - Pastel brown
-            Color(red: 0.8, green: 0.8, blue: 0.8)      // 10th - Pastel gray
-        ]
-        
-        return index < colors.count ? colors[index] : Color.gray.opacity(0.3)
+        return ColorUtility.indexColor(index: index)
     }
 }
 

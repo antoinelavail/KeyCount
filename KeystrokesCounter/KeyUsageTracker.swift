@@ -40,13 +40,34 @@ struct KeyboardShortcut: Hashable, Codable {
     }
 }
 
+// Time range enum
+enum TimeRange {
+    case today
+    case lastWeek
+    case lastMonth
+    case allTime
+    
+    var description: String {
+        switch self {
+        case .today: return "Today"
+        case .lastWeek: return "7 Days"
+        case .lastMonth: return "30 Days"
+        case .allTime: return "All Time"
+        }
+    }
+}
+
 class KeyUsageTracker: ObservableObject {
     static let shared = KeyUsageTracker()
     
     @Published private var keyUsageCounts: [UInt16: Int] = [:]
     @Published private var shortcutUsageCounts: [KeyboardShortcut: Int] = [:]
+    @Published private var keyUsageTimestamps: [UInt16: [Date]] = [:]
+    @Published private var shortcutUsageTimestamps: [KeyboardShortcut: [Date]] = [:]
     private let userDefaultsKey = "keyUsageCounts"
     private let shortcutUserDefaultsKey = "shortcutUsageCounts"
+    private let keyTimestampsKey = "keyUsageTimestamps"
+    private let shortcutTimestampsKey = "shortcutUsageTimestamps"
     
     init() {
         loadData()
@@ -54,6 +75,14 @@ class KeyUsageTracker: ObservableObject {
     
     func recordKeyPress(keyCode: UInt16) {
         keyUsageCounts[keyCode, default: 0] += 1
+        
+        // Store timestamp
+        let now = Date()
+        if keyUsageTimestamps[keyCode] == nil {
+            keyUsageTimestamps[keyCode] = []
+        }
+        keyUsageTimestamps[keyCode]?.append(now)
+        
         saveData()
     }
     
@@ -71,6 +100,12 @@ class KeyUsageTracker: ObservableObject {
             let shortcut = KeyboardShortcut(keyCode: keyCode, modifiers: relevantModifiers)
             shortcutUsageCounts[shortcut, default: 0] += 1
             
+            // Store timestamp
+            let now = Date()
+            if shortcutUsageTimestamps[shortcut] == nil {
+                shortcutUsageTimestamps[shortcut] = []
+            }
+            shortcutUsageTimestamps[shortcut]?.append(now)
             
             saveData()
         }
@@ -124,6 +159,54 @@ class KeyUsageTracker: ObservableObject {
         return shortcutUsageCounts.values.max() ?? 0
     }
     
+    func getKeyCountForTimeRange(for keyCode: UInt16, timeRange: TimeRange) -> Int {
+        guard let timestamps = keyUsageTimestamps[keyCode] else {
+            return 0
+        }
+        
+        let dateLimit: Date?
+        switch timeRange {
+        case .today:
+            dateLimit = Calendar.current.startOfDay(for: Date())
+        case .lastWeek:
+            dateLimit = Calendar.current.date(byAdding: .day, value: -7, to: Date())
+        case .lastMonth:
+            dateLimit = Calendar.current.date(byAdding: .day, value: -30, to: Date())
+        case .allTime:
+            dateLimit = nil
+        }
+        
+        if let limit = dateLimit {
+            return timestamps.filter { $0 >= limit }.count
+        } else {
+            return getKeyCount(for: keyCode)
+        }
+    }
+
+    func getShortcutCountForTimeRange(for shortcut: KeyboardShortcut, timeRange: TimeRange) -> Int {
+        guard let timestamps = shortcutUsageTimestamps[shortcut] else {
+            return 0
+        }
+        
+        let dateLimit: Date?
+        switch timeRange {
+        case .today:
+            dateLimit = Calendar.current.startOfDay(for: Date())
+        case .lastWeek:
+            dateLimit = Calendar.current.date(byAdding: .day, value: -7, to: Date())
+        case .lastMonth:
+            dateLimit = Calendar.current.date(byAdding: .day, value: -30, to: Date())
+        case .allTime:
+            dateLimit = nil
+        }
+        
+        if let limit = dateLimit {
+            return timestamps.filter { $0 >= limit }.count
+        } else {
+            return getShortcutCount(for: shortcut)
+        }
+    }
+    
     func getTopKeys(count: Int) -> [(keyCode: UInt16, count: Int, label: String)] {
         // Get keys sorted by usage (most used first)
         let sortedKeys = keyUsageCounts.sorted { $0.value > $1.value }
@@ -135,6 +218,26 @@ class KeyUsageTracker: ObservableObject {
         return topKeys.map { (keyCode: $0.key, count: $0.value, label: keyCodeToString($0.key)) }
     }
     
+    func getTopKeysForTimeRange(count: Int, timeRange: TimeRange) -> [(keyCode: UInt16, count: Int, label: String)] {
+        if timeRange == .allTime {
+            return getTopKeys(count: count)
+        }
+        
+        // Calculate counts for each key in the specified time range
+        var timeRangeCounts: [UInt16: Int] = [:]
+        for (keyCode, timestamps) in keyUsageTimestamps {
+            let countForRange = getKeyCountForTimeRange(for: keyCode, timeRange: timeRange)
+            if countForRange > 0 {
+                timeRangeCounts[keyCode] = countForRange
+            }
+        }
+        
+        // Sort and return top keys
+        let sortedKeys = timeRangeCounts.sorted { $0.value > $1.value }
+        let topKeys = sortedKeys.prefix(count)
+        return topKeys.map { (keyCode: $0.key, count: $0.value, label: keyCodeToString($0.key)) }
+    }
+    
     func getTopShortcuts(count: Int) -> [(shortcut: KeyboardShortcut, count: Int, description: String)] {
         // Get shortcuts sorted by usage (most used first)
         let sortedShortcuts = shortcutUsageCounts.sorted { $0.value > $1.value }
@@ -143,6 +246,26 @@ class KeyUsageTracker: ObservableObject {
         let topShortcuts = sortedShortcuts.prefix(count)
         
         // Map to return array with shortcut descriptions
+        return topShortcuts.map { (shortcut: $0.key, count: $0.value, description: $0.key.description()) }
+    }
+    
+    func getTopShortcutsForTimeRange(count: Int, timeRange: TimeRange) -> [(shortcut: KeyboardShortcut, count: Int, description: String)] {
+        if timeRange == .allTime {
+            return getTopShortcuts(count: count)
+        }
+        
+        // Calculate counts for each shortcut in the specified time range
+        var timeRangeCounts: [KeyboardShortcut: Int] = [:]
+        for (shortcut, timestamps) in shortcutUsageTimestamps {
+            let countForRange = getShortcutCountForTimeRange(for: shortcut, timeRange: timeRange)
+            if countForRange > 0 {
+                timeRangeCounts[shortcut] = countForRange
+            }
+        }
+        
+        // Sort and return top shortcuts
+        let sortedShortcuts = timeRangeCounts.sorted { $0.value > $1.value }
+        let topShortcuts = sortedShortcuts.prefix(count)
         return topShortcuts.map { (shortcut: $0.key, count: $0.value, description: $0.key.description()) }
     }
     
@@ -217,12 +340,22 @@ class KeyUsageTracker: ObservableObject {
     }
     
     func saveData() {
+        // Save existing counts
         if let encodedKeyData = try? JSONEncoder().encode(keyUsageCounts) {
             UserDefaults.standard.set(encodedKeyData, forKey: userDefaultsKey)
         }
         
         if let encodedShortcutData = try? JSONEncoder().encode(shortcutUsageCounts) {
             UserDefaults.standard.set(encodedShortcutData, forKey: shortcutUserDefaultsKey)
+        }
+        
+        // Save new timestamp data
+        if let encodedKeyTimestamps = try? JSONEncoder().encode(keyUsageTimestamps) {
+            UserDefaults.standard.set(encodedKeyTimestamps, forKey: keyTimestampsKey)
+        }
+        
+        if let encodedShortcutTimestamps = try? JSONEncoder().encode(shortcutUsageTimestamps) {
+            UserDefaults.standard.set(encodedShortcutTimestamps, forKey: shortcutTimestampsKey)
         }
     }
     
@@ -235,6 +368,17 @@ class KeyUsageTracker: ObservableObject {
         if let savedShortcutData = UserDefaults.standard.data(forKey: shortcutUserDefaultsKey),
            let decodedShortcutCounts = try? JSONDecoder().decode([KeyboardShortcut: Int].self, from: savedShortcutData) {
             shortcutUsageCounts = decodedShortcutCounts
+        }
+        
+        // Load timestamp data
+        if let savedKeyTimestamps = UserDefaults.standard.data(forKey: keyTimestampsKey),
+           let decodedKeyTimestamps = try? JSONDecoder().decode([UInt16: [Date]].self, from: savedKeyTimestamps) {
+            keyUsageTimestamps = decodedKeyTimestamps
+        }
+        
+        if let savedShortcutTimestamps = UserDefaults.standard.data(forKey: shortcutTimestampsKey),
+           let decodedShortcutTimestamps = try? JSONDecoder().decode([KeyboardShortcut: [Date]].self, from: savedShortcutTimestamps) {
+            shortcutUsageTimestamps = decodedShortcutTimestamps
         }
     }
 }

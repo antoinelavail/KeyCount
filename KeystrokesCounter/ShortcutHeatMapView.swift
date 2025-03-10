@@ -4,12 +4,26 @@ struct ShortcutHeatMapView: View {
     @ObservedObject private var keyTracker = KeyUsageTracker.shared
     @State private var topShortcuts: [(shortcut: KeyboardShortcut, count: Int, description: String)] = []
     @State private var maxCount: Int = 0
+    @State private var selectedTimeRange: TimeRange = .today
     
     var body: some View {
         VStack(spacing: 16) {
             Text("Keyboard Shortcuts")
                 .font(.title)
                 .padding(.bottom, 4)
+            
+            // Time range selector
+            Picker("Time Range", selection: $selectedTimeRange) {
+                Text(TimeRange.today.description).tag(TimeRange.today)
+                Text(TimeRange.lastWeek.description).tag(TimeRange.lastWeek)
+                Text(TimeRange.lastMonth.description).tag(TimeRange.lastMonth)
+                Text(TimeRange.allTime.description).tag(TimeRange.allTime)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            .onChange(of: selectedTimeRange) { _ in
+                loadShortcutData()
+            }
             
             // Top 10 shortcuts section
             VStack(alignment: .leading, spacing: 8) {
@@ -118,7 +132,7 @@ struct ShortcutHeatMapView: View {
     }
     
     private func loadShortcutData() {
-        topShortcuts = keyTracker.getTopShortcuts(count: 30)
+        topShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 30, timeRange: selectedTimeRange)
         maxCount = topShortcuts.first?.count ?? 0
     }
     
