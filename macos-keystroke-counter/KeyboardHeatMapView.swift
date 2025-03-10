@@ -106,7 +106,7 @@ struct KeyboardHeatMapView: View {
     var body: some View {
         VStack(spacing: 6) {
             Text("Keyboard Heat Map")
-                .font(.headline)
+                .font(.title)
                 .padding(.bottom, 4)
             
             // Add a ScrollView to ensure the keyboard is always accessible

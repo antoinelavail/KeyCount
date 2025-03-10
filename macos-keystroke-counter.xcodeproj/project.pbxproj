@@ -10,6 +10,10 @@
 		285A43152B0568720060A160 /* macos_keystroke_counterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 285A43142B0568720060A160 /* macos_keystroke_counterApp.swift */; };
 		285A43192B0568780060A160 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 285A43182B0568780060A160 /* Assets.xcassets */; };
 		285A431C2B0568780060A160 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 285A431B2B0568780060A160 /* Preview Assets.xcassets */; };
+		3969CAFE2D7F11E40007E249 /* KeystrokeChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CAFD2D7F11E40007E249 /* KeystrokeChartView.swift */; };
+		3969CB002D7F11EB0007E249 /* KeystrokeHistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */; };
+		3969CB022D7F2EEC0007E249 /* KeyUsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */; };
+		3969CB042D7F2EFD0007E249 /* KeyboardHeatMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +23,10 @@
 		285A43182B0568780060A160 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		285A431B2B0568780060A160 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		285A431D2B0568780060A160 /* macos_keystroke_counter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macos_keystroke_counter.entitlements; sourceTree = "<group>"; };
+		3969CAFD2D7F11E40007E249 /* KeystrokeChartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeystrokeChartView.swift; sourceTree = "<group>"; };
+		3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeystrokeHistoryManager.swift; sourceTree = "<group>"; };
+		3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyUsageTracker.swift; sourceTree = "<group>"; };
+		3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyboardHeatMapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +61,10 @@
 			children = (
 				2848C54F2B081B46007ECFF0 /* Info.plist */,
 				285A43142B0568720060A160 /* macos_keystroke_counterApp.swift */,
+				3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */,
+				3969CAFD2D7F11E40007E249 /* KeystrokeChartView.swift */,
+				3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */,
+				3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */,
 				285A43182B0568780060A160 /* Assets.xcassets */,
 				285A431D2B0568780060A160 /* macos_keystroke_counter.entitlements */,
 				285A431A2B0568780060A160 /* Preview Content */,
@@ -138,7 +150,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3969CB042D7F2EFD0007E249 /* KeyboardHeatMapView.swift in Sources */,
+				3969CB002D7F11EB0007E249 /* KeystrokeHistoryManager.swift in Sources */,
 				285A43152B0568720060A160 /* macos_keystroke_counterApp.swift in Sources */,
+				3969CB022D7F2EEC0007E249 /* KeyUsageTracker.swift in Sources */,
+				3969CAFE2D7F11E40007E249 /* KeystrokeChartView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,7 +284,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"macos-keystroke-counter/Preview Content\"";
-				DEVELOPMENT_TEAM = 26J8GV82Z2;
+				DEVELOPMENT_TEAM = 25DLK5GC54;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -298,7 +314,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"macos-keystroke-counter/Preview Content\"";
-				DEVELOPMENT_TEAM = 26J8GV82Z2;
+				DEVELOPMENT_TEAM = 25DLK5GC54;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

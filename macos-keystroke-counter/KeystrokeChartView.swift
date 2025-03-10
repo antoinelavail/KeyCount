@@ -29,8 +29,7 @@ struct KeystrokeChartView: View {
             if highlightToday {
                 VStack(spacing: 5) {
                     Text("Today's Keystrokes")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+                        .font(.title)
                     
                     Text("\(todayCount)")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
@@ -38,12 +37,11 @@ struct KeystrokeChartView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(.ultraThinMaterial)
                 .cornerRadius(10)
                 .padding([.horizontal, .top])
             }
             
-            Picker("View", selection: $selectedTab) {
+            Picker("", selection: $selectedTab) {
                 Text("History").tag(0)
                 Text("Heat Map").tag(1)
             }
