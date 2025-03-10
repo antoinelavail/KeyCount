@@ -21,7 +21,7 @@
 /* Begin PBXFileReference section */
 		2848C54F2B081B46007ECFF0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		285A43112B0568720060A160 /* macos-keystroke-counter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "macos-keystroke-counter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		285A43142B0568720060A160 /* macos_keystroke_counterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = macos_keystroke_counterApp.swift; sourceTree = "<group>"; };
+		285A43142B0568720060A160 /* KeystrokeCounterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeystrokeCounterApp.swift; sourceTree = "<group>"; };
 		285A43182B0568780060A160 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		285A431B2B0568780060A160 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		285A431D2B0568780060A160 /* macos_keystroke_counter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macos_keystroke_counter.entitlements; sourceTree = "<group>"; };
@@ -64,7 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				2848C54F2B081B46007ECFF0 /* Info.plist */,
-				285A43142B0568720060A160 /* macos_keystroke_counterApp.swift */,
+				285A43142B0568720060A160 /* KeystrokeCounterApp.swift */,
 				3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */,
 				3969CAFD2D7F11E40007E249 /* KeystrokeChartView.swift */,
 				3969CAFF2D7F11EB0007E249 /* KeystrokeHistoryManager.swift */,
@@ -160,7 +160,7 @@
 				3969CB082D7F42AA0007E249 /* ShortcutHeatMapView.swift in Sources */,
 				3969CB092D7F42BB0007E249 /* ColorUtility.swift in Sources */,
 				3969CB002D7F11EB0007E249 /* KeystrokeHistoryManager.swift in Sources */,
-				285A43152B0568720060A160 /* macos_keystroke_counterApp.swift in Sources */,
+				285A43152B0568720060A160 /* KeystrokeCounterApp.swift in Sources */,
 				3969CB022D7F2EEC0007E249 /* KeyUsageTracker.swift in Sources */,
 				3969CAFE2D7F11E40007E249 /* KeystrokeChartView.swift in Sources */,
 			);
