@@ -120,12 +120,7 @@ struct KeyboardHeatMapView: View {
                                 )
                             }
                         }
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading).combined(with: .opacity),
-                            removal: .move(edge: .trailing).combined(with: .opacity)
-                        ))
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.1).delay(Double(index) * 0.03), value: selectedTimeRange)
-                        .id("\(selectedTimeRange)-\(index)") // Important for SwiftUI to detect changes
+                        // No animation needed for keyboard layout
                     }
                 }
                 .padding(8)
