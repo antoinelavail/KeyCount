@@ -158,11 +158,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     func updateHistoryView() {
         if let window = historyWindow, 
            let hostingView = window.contentView as? NSHostingView<KeystrokeChartView> {
-            // Update the view with current data
-            let updatedView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                .frame(width: window.frame.width, height: window.frame.height)
-                .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
-            hostingView.rootView = updatedView
+            // Only update the KeystrokeChartView properties, don't add modifiers
+            hostingView.rootView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
         }
     }
     
@@ -197,12 +194,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             historyWindow?.delegate = self
             
             // Configure the view with today's count highlighted
-            let hostingView = NSHostingView(rootView: 
-                KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                    .frame(width: windowWidth, height: windowHeight)
-                    .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
+            let hostingController = NSHostingController(
+                rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
             )
-            historyWindow?.contentView = hostingView
+            let hostingView = hostingController.view
+            hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
+
+            // Add the visual effect as a background
+            let visualEffectView = NSVisualEffectView(frame: hostingView.bounds)
+            visualEffectView.material = .hudWindow
+            visualEffectView.blendingMode = .behindWindow
+            visualEffectView.state = .active
+            visualEffectView.autoresizingMask = [.width, .height]
+
+            // Add views in the correct order
+            historyWindow?.contentView = visualEffectView
+            visualEffectView.addSubview(hostingView)
             
             // Make corners rounded
             historyWindow?.contentView?.wantsLayer = true
