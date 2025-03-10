@@ -4,8 +4,20 @@ import Charts
 struct KeystrokeChartView: View {
     @State private var historyData: [(date: String, count: Int)] = []
     @State private var selectedDays: Int = 7
-    var highlightToday: Bool = false
-    var todayCount: Int = 0
+    var highlightToday: Bool = false {
+        didSet {
+            if oldValue != highlightToday {
+                loadData()
+            }
+        }
+    }
+    var todayCount: Int = 0 {
+        didSet {
+            if oldValue != todayCount {
+                loadData()
+            }
+        }
+    }
     
     var body: some View {
         VStack {
@@ -87,7 +99,31 @@ struct KeystrokeChartView: View {
     }
     
     private func loadData() {
-        historyData = KeystrokeHistoryManager.shared.getKeystrokeHistory(days: selectedDays)
+        // Get history data
+        var data = KeystrokeHistoryManager.shared.getKeystrokeHistory(days: selectedDays)
+        
+        if highlightToday {
+            // Format today's date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let today = dateFormatter.string(from: Date())
+            
+            // Check if today is already in the data
+            let containsToday = data.contains(where: { $0.date == today })
+            
+            // If not, or if we need to update it, add/update today's count
+            if !containsToday {
+                data.append((date: today, count: todayCount))
+            } else if let index = data.firstIndex(where: { $0.date == today }) {
+                // Update today's count in the existing data
+                data[index] = (date: today, count: todayCount)
+            }
+            
+            // Sort data by date
+            data.sort(by: { $0.date < $1.date })
+        }
+        
+        historyData = data
     }
     
     private func formatDate(_ dateString: String) -> String {
