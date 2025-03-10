@@ -21,31 +21,17 @@ class WindowAnimationManager: ObservableObject {
     }
     
     func triggerComponentAnimations() {
-        // Reset state before animation if needed
-        if startComponentAnimations {
-            startComponentAnimations = false
-            
-            // Small delay to ensure UI updates before animation starts
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                self.startAnimation()
-            }
-        } else {
-            startAnimation()
-        }
-    }
-    
-    private func startAnimation() {
-        // Explicitly use the main thread
+        // Use main thread directly with no delay
         DispatchQueue.main.async {
-            withAnimation(.easeOut(duration: 0.2)) { // Use faster initial animation
+            withAnimation(.easeOut(duration: 0.15)) { // Faster animation
                 self.startComponentAnimations = true
             }
         }
     }
 }
 
-// ViewModifier for staggered animations with bounce - optimized for performance
-struct StaggeredBounceAnimation: ViewModifier {
+// Simpler animation modifier - translation only
+struct SlideInAnimation: ViewModifier {
     @EnvironmentObject var animationManager: WindowAnimationManager
     let index: Int
     let baseDelay: Double
@@ -53,22 +39,16 @@ struct StaggeredBounceAnimation: ViewModifier {
     func body(content: Content) -> some View {
         content
             .opacity(animationManager.startComponentAnimations ? 1 : 0)
-            .scaleEffect(animationManager.startComponentAnimations ? 1.0 : 0.96) // Less scale difference
-            .offset(x: animationManager.startComponentAnimations ? 0 : 12) // Smaller offset for quicker movement
+            .offset(x: animationManager.startComponentAnimations ? 0 : 15) // Only horizontal movement
             .animation(
-                .spring(
-                    response: 0.32, // Reduced for snappier response
-                    dampingFraction: 0.72, // Increased for less bounce
-                    blendDuration: 0.05 // Reduced blend time
-                )
-                .delay(baseDelay + Double(index) * 0.03), // Shorter delays between items
+                .easeOut(duration: 0.2).delay(baseDelay + Double(index) * 0.02), // Shorter delay between items
                 value: animationManager.startComponentAnimations
             )
     }
 }
 
 extension View {
-    func staggeredBounceAnimation(index: Int, baseDelay: Double = 0.0) -> some View {
-        self.modifier(StaggeredBounceAnimation(index: index, baseDelay: baseDelay))
+    func slideInAnimation(index: Int, baseDelay: Double = 0.0) -> some View {
+        self.modifier(SlideInAnimation(index: index, baseDelay: baseDelay))
     }
 }

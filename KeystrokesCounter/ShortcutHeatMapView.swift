@@ -93,8 +93,15 @@ struct ShortcutHeatMapView: View {
     }
     
     private func loadShortcutData() {
-        topShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 30, timeRange: selectedTimeRange)
-        maxCount = topShortcuts.first?.count ?? 0
+        // Perform calculation off the animation path
+        let newTopShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 30, timeRange: selectedTimeRange)
+        let newMaxCount = newTopShortcuts.first?.count ?? 0
+        
+        // Then apply with animation
+        withAnimation(.easeOut(duration: 0.2)) {
+            topShortcuts = newTopShortcuts
+            maxCount = newMaxCount
+        }
     }
     
     private func getTotalShortcuts() -> Int? {
@@ -140,10 +147,7 @@ struct ShortcutListItem: View {
                     .foregroundColor(.secondary)
             }
         }
-        .transition(.asymmetric(
-            insertion: .move(edge: .trailing).combined(with: .opacity),
-            removal: .move(edge: .leading).combined(with: .opacity)
-        ))
+        .transition(.move(edge: .trailing)) // Simplified transition
         .id("\(timeRange)-\(index)")
     }
     

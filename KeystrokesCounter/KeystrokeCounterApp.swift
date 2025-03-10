@@ -249,8 +249,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             )
             historyWindow?.animator().alphaValue = 1.0
             
-            // Trigger internal animations at 80% of the transition
-            DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.8) {
+            // Trigger internal animations at 50% of the transition
+            DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.5) {
                 // Post a notification to trigger content animations
                 NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
             }

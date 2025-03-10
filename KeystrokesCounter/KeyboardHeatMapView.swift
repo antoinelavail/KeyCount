@@ -290,7 +290,7 @@ struct TopKeysView: View {
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundColor(.secondary)
                                 .frame(width: 30, alignment: .trailing)
-                            
+                                
                             Text(topKeys[index].label)
                                 .font(.system(.body, design: .monospaced))
                                 .fontWeight(.medium)
@@ -300,12 +300,12 @@ struct TopKeysView: View {
                                     RoundedRectangle(cornerRadius: 4)
                                         .fill(keyColor(for: index))
                                 )
-                            
+                                
                             Text("\(topKeys[index].count) keystrokes")
                                 .font(.body)
-                            
+                                
                             Spacer()
-                            
+                                
                             // Percentage of total
                             if let totalKeystrokes = getTotalKeystrokes() {
                                 let percentage = Double(topKeys[index].count) / Double(totalKeystrokes) * 100
@@ -314,6 +314,9 @@ struct TopKeysView: View {
                                     .foregroundColor(.secondary)
                             }
                         }
+                        .transition(.move(edge: .leading)) // Simplified transition
+                        .animation(.easeOut(duration: 0.15).delay(Double(index) * 0.02), value: selectedTimeRange)
+                        .id("\(selectedTimeRange)-\(index)")
                     }
                 }
                 .padding(8)
@@ -331,8 +334,12 @@ struct TopKeysView: View {
     }
     
     private func loadTopKeys() {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            topKeys = keyTracker.getTopKeysForTimeRange(count: 10, timeRange: selectedTimeRange)
+        // Perform calculation off the animation path
+        let newTopKeys = keyTracker.getTopKeysForTimeRange(count: 10, timeRange: selectedTimeRange)
+        
+        // Then apply with animation
+        withAnimation(.easeOut(duration: 0.2)) {
+            topKeys = newTopKeys
         }
     }
     

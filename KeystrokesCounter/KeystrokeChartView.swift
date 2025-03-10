@@ -23,19 +23,19 @@ struct KeystrokeChartView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // 1. Today's keystrokes section with staggered animation
+                // 1. Today's keystrokes section with simplified animation
                 TodayKeystrokesView(todayCount: todayCount)
-                    .staggeredBounceAnimation(index: 0)
+                    .slideInAnimation(index: 0)
                 
                 // 2. Most used keys section
                 TopKeysView()
                     .padding(.horizontal)
-                    .staggeredBounceAnimation(index: 1)
+                    .slideInAnimation(index: 1)
                 
                 // 3. Most used shortcuts section
                 TopShortcutsView()
                     .padding(.horizontal)
-                    .staggeredBounceAnimation(index: 2)
+                    .slideInAnimation(index: 2)
                 
                 // 4. Keys heatmap (combined keys and shortcuts)
                 VStack(alignment: .leading, spacing: 8) {
@@ -46,7 +46,7 @@ struct KeystrokeChartView: View {
                     KeyboardHeatMapView()
                         .padding(.horizontal)
                 }
-                .staggeredBounceAnimation(index: 3)
+                .slideInAnimation(index: 3)
                 
                 // 5. History chart
                 VStack(alignment: .leading, spacing: 8) {
@@ -89,7 +89,7 @@ struct KeystrokeChartView: View {
                         .padding(.horizontal)
                     }
                 }
-                .staggeredBounceAnimation(index: 4)
+                .slideInAnimation(index: 4)
                 
                 // Quit Button
                 Button(action: {
@@ -107,7 +107,7 @@ struct KeystrokeChartView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 24)
-                .staggeredBounceAnimation(index: 5, baseDelay: 0.1)
+                .slideInAnimation(index: 5, baseDelay: 0.1)
             }
             .padding(.top, 16)
             .padding(.bottom, 16)
@@ -243,11 +243,8 @@ struct TopShortcutsView: View {
                                     .foregroundColor(.secondary)
                             }
                         }
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.1).delay(Double(index) * 0.03), value: selectedTimeRange)
+                        .transition(.move(edge: .leading)) // Simplified transition
+                        .animation(.easeOut(duration: 0.15).delay(Double(index) * 0.02), value: selectedTimeRange)
                         .id("\(selectedTimeRange)-\(index)") // Important for SwiftUI to detect changes
                     }
                 }
@@ -266,9 +263,14 @@ struct TopShortcutsView: View {
     }
     
     private func loadShortcutData() {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            topShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 10, timeRange: selectedTimeRange)
-            maxCount = topShortcuts.first?.count ?? 0
+        // Perform calculation off the animation path
+        let newTopShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 10, timeRange: selectedTimeRange)
+        let newMaxCount = newTopShortcuts.first?.count ?? 0
+        
+        // Then apply with animation
+        withAnimation(.easeOut(duration: 0.2)) {
+            topShortcuts = newTopShortcuts
+            maxCount = newMaxCount
         }
     }
     
