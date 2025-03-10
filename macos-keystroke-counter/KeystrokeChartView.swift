@@ -102,7 +102,8 @@ struct KeystrokeChartView: View {
             .padding(.bottom, 24) // Increased bottom padding
         }
         .frame(width: 360)
-        .padding(.vertical, 8) // Add padding to the entire VStack
+        .padding(.top, 8)
+        .padding(.bottom, 16) // Increased bottom padding
         .onAppear {
             loadData()
         }
