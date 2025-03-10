@@ -15,6 +15,7 @@
 		3969CB022D7F2EEC0007E249 /* KeyUsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB012D7F2EEC0007E249 /* KeyUsageTracker.swift */; };
 		3969CB042D7F2EFD0007E249 /* KeyboardHeatMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB032D7F2EFD0007E249 /* KeyboardHeatMapView.swift */; };
 		3969CB082D7F42AA0007E249 /* ShortcutHeatMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB072D7F42AA0007E249 /* ShortcutHeatMapView.swift */; };
+		3969CB092D7F42BB0007E249 /* ColorUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3969CB082D7F42BB0007E249 /* ColorUtility.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
