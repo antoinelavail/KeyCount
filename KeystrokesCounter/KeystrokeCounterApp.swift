@@ -137,9 +137,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     
     func updateHistoryView() {
         if let window = historyWindow, 
-           let hostingView = window.contentView as? NSHostingView<KeystrokeChartView> {
-            // Only update the KeystrokeChartView properties, don't add modifiers
+           let hostingView = window.contentView?.subviews.first as? NSHostingView<KeystrokeChartView> {
+            // Create a new animation manager for the updated view
+            let animationManager = WindowAnimationManager()
+            
+            // Update the view with the new manager
             hostingView.rootView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                .environmentObject(animationManager)
+            
+            // Trigger the animations after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
+            }
         }
     }
     
@@ -150,14 +159,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         
         // Calculate window size and position
         let windowWidth: CGFloat = 650
-        let windowHeight: CGFloat = 900 // Make it taller to accommodate all sections
+        let windowHeight: CGFloat = 900
         
         // If history window already exists, just show it
         if historyWindow == nil {
-            // Create a borderless window with initial alpha of 0
+            // Create a borderless window positioned offscreen to the RIGHT
             historyWindow = NSWindow(
                 contentRect: NSRect(
-                    x: screenRect.maxX - windowWidth, // Position it just offscreen
+                    x: screenRect.maxX, // Position it offscreen to the right
                     y: screenRect.maxY - windowHeight,
                     width: windowWidth,
                     height: windowHeight
@@ -167,21 +176,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 defer: false
             )
             
-            historyWindow?.backgroundColor = NSColor.clear // Start transparent
-            historyWindow?.alphaValue = 0.0 // Start fully transparent
+            historyWindow?.backgroundColor = NSColor.clear
+            historyWindow?.alphaValue = 0.0
             historyWindow?.isOpaque = false
             historyWindow?.hasShadow = true
             historyWindow?.level = .statusBar
             historyWindow?.delegate = self
             
-            // Configure the view with fade-in transition
+            // Configure the view with a notification publisher for animation timing
+            let animationManager = WindowAnimationManager()
             let hostingController = NSHostingController(
                 rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .topTrailing)),
-                        removal: .opacity.combined(with: .scale(scale: 0.95, anchor: .topTrailing))
-                    ))
-                    .animation(.easeInOut(duration: 0.3), value: true)
+                    .environmentObject(animationManager)
             )
             let hostingView = hostingController.view
             hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
@@ -210,16 +216,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         historyWindow?.orderFront(nil)
         historyWindow?.makeKey()
         
-        // Combined fade + slide animation
+        // Combined fade + RIGHT-TO-LEFT slide animation
         NSAnimationContext.runAnimationGroup({ context in
             context.allowsImplicitAnimation = true
-            context.duration = 0.35
+            context.duration = 0.45 // Slightly longer for smooth effect
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             
             // Animate both position and opacity
             historyWindow?.animator().setFrame(
                 NSRect(
-                    x: screenRect.maxX - windowWidth,
+                    x: screenRect.maxX - windowWidth, // Final position (slid in from right)
                     y: screenRect.maxY - windowHeight,
                     width: windowWidth,
                     height: windowHeight
@@ -227,6 +233,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 display: true
             )
             historyWindow?.animator().alphaValue = 1.0
+            
+            // Trigger internal animations at 80% of the transition
+            DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.8) {
+                // Post a notification to trigger content animations
+                NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
+            }
         })
         
         // Set up event monitoring to close the window when focus is lost
@@ -256,16 +268,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             eventMonitor = nil
         }
         
-        // Combined slide-out and fade-out animation
+        // Slide-out to the RIGHT and fade-out animation
         NSAnimationContext.runAnimationGroup({ context in
             context.allowsImplicitAnimation = true
-            context.duration = 0.25
+            context.duration = 0.3
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             
-            // Animate both position and opacity
+            // Animate position (to the right) and opacity
             window.animator().setFrame(
                 NSRect(
-                    x: screen.visibleFrame.maxX,
+                    x: screen.visibleFrame.maxX, // Move offscreen to the right
                     y: window.frame.minY,
                     width: window.frame.width,
                     height: window.frame.height

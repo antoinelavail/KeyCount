@@ -2,6 +2,7 @@ import SwiftUI
 import Charts
 
 struct KeystrokeChartView: View {
+    @EnvironmentObject private var animationManager: WindowAnimationManager
     @State private var historyData: [(date: String, count: Int)] = []
     @State private var selectedDays: Int = 7
     var highlightToday: Bool = false {
@@ -22,16 +23,19 @@ struct KeystrokeChartView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // 1. Today's keystrokes section
+                // 1. Today's keystrokes section with staggered animation
                 TodayKeystrokesView(todayCount: todayCount)
+                    .staggeredBounceAnimation(index: 0)
                 
                 // 2. Most used keys section
                 TopKeysView()
                     .padding(.horizontal)
+                    .staggeredBounceAnimation(index: 1)
                 
                 // 3. Most used shortcuts section
                 TopShortcutsView()
                     .padding(.horizontal)
+                    .staggeredBounceAnimation(index: 2)
                 
                 // 4. Keys heatmap (combined keys and shortcuts)
                 VStack(alignment: .leading, spacing: 8) {
@@ -42,6 +46,7 @@ struct KeystrokeChartView: View {
                     KeyboardHeatMapView()
                         .padding(.horizontal)
                 }
+                .staggeredBounceAnimation(index: 3)
                 
                 // 5. History chart
                 VStack(alignment: .leading, spacing: 8) {
@@ -84,6 +89,7 @@ struct KeystrokeChartView: View {
                         .padding(.horizontal)
                     }
                 }
+                .staggeredBounceAnimation(index: 4)
                 
                 // Quit Button
                 Button(action: {
@@ -101,6 +107,7 @@ struct KeystrokeChartView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 24)
+                .staggeredBounceAnimation(index: 5, baseDelay: 0.1)
             }
             .padding(.top, 16)
             .padding(.bottom, 16)
