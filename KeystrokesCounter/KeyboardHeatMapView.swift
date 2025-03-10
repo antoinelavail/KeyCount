@@ -107,7 +107,7 @@ struct KeyboardHeatMapView: View {
     var body: some View {
         VStack(spacing: 12) {
             // Keyboard layout visualization
-            ScrollView([.horizontal, .vertical]) {
+            ScrollView([.vertical]) {
                 VStack(spacing: 4) {
                     ForEach(keyboardRows.indices, id: \.self) { rowIndex in
                         HStack(spacing: 4) {
@@ -127,13 +127,12 @@ struct KeyboardHeatMapView: View {
                 .background(.ultraThinMaterial)
                 .cornerRadius(10)
             }
-            .frame(height: 250)
+            .frame(height: 160)
             
             // Color scale legend
             VStack(spacing: 12) {
                 Text("Keystroke Color Scale")
                     .font(.headline)
-                    .padding(.top, 4)
                 
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading) {
@@ -359,8 +358,8 @@ struct KeyView: View {
     let maxCount: Int
     
     // Adjust the base size to be slightly smaller for better fit
-    private let baseWidth: CGFloat = 30
-    private let baseHeight: CGFloat = 30
+    private let baseWidth: CGFloat = 20
+    private let baseHeight: CGFloat = 20
     
     var body: some View {
         Text(keyInfo.label)

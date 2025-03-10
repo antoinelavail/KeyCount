@@ -112,7 +112,7 @@ struct KeystrokeChartView: View {
             .padding(.top, 16)
             .padding(.bottom, 16)
         }
-        .frame(minWidth: 600, maxWidth: .infinity)
+        .frame(maxWidth: .infinity)
         .onAppear {
             loadData()
         }
