@@ -21,7 +21,7 @@ struct KeystrokeTrackerApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
     var activity: NSObjectProtocol?
     var mainWindow: NSWindow!
     var historyWindow: NSWindow?
@@ -146,6 +146,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             )
             historyWindow?.title = "Keystroke History"
             historyWindow?.center()
+            historyWindow?.delegate = self  // Set the delegate
             
             let hostingView = NSHostingView(rootView: KeystrokeChartView())
             historyWindow?.contentView = hostingView
@@ -153,6 +154,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         historyWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    // Window delegate method to handle window closing
+    func windowWillClose(_ notification: Notification) {
+        if let window = notification.object as? NSWindow, window == historyWindow {
+            // When window closes, set reference to nil
+            historyWindow = nil
+        }
     }
     
     func updateKeystrokesCount() {
