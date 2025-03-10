@@ -4,9 +4,29 @@ import Charts
 struct KeystrokeChartView: View {
     @State private var historyData: [(date: String, count: Int)] = []
     @State private var selectedDays: Int = 7
+    var highlightToday: Bool = false
+    var todayCount: Int = 0
     
     var body: some View {
         VStack {
+            // Today's count highlight section
+            if highlightToday {
+                VStack(spacing: 5) {
+                    Text("Today's Keystrokes")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("\(todayCount)")
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(10)
+                .padding([.horizontal, .top])
+            }
+            
             Text("Keystroke History")
                 .font(.title)
                 .padding(.top)
@@ -37,7 +57,7 @@ struct KeystrokeChartView: View {
                         .foregroundStyle(Color.blue.gradient)
                     }
                 }
-                .frame(height: 300)
+                .frame(height: 250)
                 .padding()
                 
                 List {
@@ -53,7 +73,7 @@ struct KeystrokeChartView: View {
                 }
             }
         }
-        .frame(width: 500, height: 600)
+        .frame(width: 360)
         .onAppear {
             loadData()
         }

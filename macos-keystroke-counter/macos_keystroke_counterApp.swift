@@ -155,6 +155,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
+    func updateHistoryView() {
+        if let window = historyWindow, 
+           let hostingView = window.contentView as? NSHostingView<KeystrokeChartView> {
+            // Update the view with current data
+            let updatedView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                .frame(width: window.frame.width, height: window.frame.height)
+                .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
+            hostingView.rootView = updatedView
+        }
+    }
+    
     @objc func showHistoryWindow() {
         // Get main screen dimensions
         guard let screen = NSScreen.main else { return }
@@ -185,9 +196,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             historyWindow?.level = .statusBar
             historyWindow?.delegate = self
             
-            // Configure the view
+            // Configure the view with today's count highlighted
             let hostingView = NSHostingView(rootView: 
-                KeystrokeChartView()
+                KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
                     .frame(width: windowWidth, height: windowHeight)
                     .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
             )
@@ -197,6 +208,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             historyWindow?.contentView?.wantsLayer = true
             historyWindow?.contentView?.layer?.cornerRadius = 10
             historyWindow?.contentView?.layer?.masksToBounds = true
+        } else {
+            // Update the view with current data
+            updateHistoryView()
         }
         
         // Show the window and bring it to the front
@@ -404,22 +418,10 @@ class ApplicationMenu: ObservableObject {
     func buildMenu() {
         menu = NSMenu()
 
-        let resetItem = NSMenuItem(title: "Reset Keystrokes", action: #selector(resetKeystrokes), keyEquivalent: "")
-        resetItem.target = self
-
-        let historyItem = NSMenuItem(title: "View History", action: #selector(showHistory), keyEquivalent: "h")
-        historyItem.target = self
-
-        let numbersOnlyItem = NSMenuItem(title: "Toggle Number Only", action: #selector(toggleShowNumbersOnly), keyEquivalent: "")
-        numbersOnlyItem.target = self
-        numbersOnlyItem.state = showNumbersOnly ? .on : .off
-
+        // Just keep the website and quit items
         let websiteItem = NSMenuItem(title: "Website", action: #selector(goToWebsite), keyEquivalent: "")
         websiteItem.target = self
 
-        menu.addItem(resetItem)
-        menu.addItem(historyItem)
-        menu.addItem(numbersOnlyItem)
         menu.addItem(websiteItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit", action: #selector(terminateApp), keyEquivalent: "q")
@@ -460,9 +462,8 @@ class ApplicationMenu: ObservableObject {
     }
 
     @objc func toggleMenu() {
-        if let button = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength).button {
-            menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 5), in: button)
-        }
+        // Show the history view directly instead of the menu
+        AppDelegate.instance.showHistoryWindow()
     }
 }
 
