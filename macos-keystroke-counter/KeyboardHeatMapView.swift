@@ -4,6 +4,7 @@ struct KeyboardHeatMapView: View {
     @ObservedObject private var keyTracker = KeyUsageTracker.shared
     @State private var maxCount: Int = 0
     @State private var showTopKeys: Bool = true
+    @State private var selectedHeatMapTab = 0
     
     // Define keyboard layout rows
     private let keyboardRows: [[KeyInfo]] = [
@@ -111,19 +112,28 @@ struct KeyboardHeatMapView: View {
                 .font(.title)
                 .padding(.bottom, 4)
             
-            // Toggle for showing top keys
-            Toggle("Show Top 10 Keys", isOn: $showTopKeys)
-                .padding(.horizontal)
-                .padding(.bottom, 8)
+            Picker("", selection: $selectedHeatMapTab) {
+                Text("Keys").tag(0)
+                Text("Shortcuts").tag(1)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.horizontal)
+            .padding(.bottom, 8)
             
-            // Top 10 keys section
-            if showTopKeys {
-                TopKeysView()
+            if selectedHeatMapTab == 0 {
+                // Toggle for showing top keys
+                Toggle("Show Top 10 Keys", isOn: $showTopKeys)
                     .padding(.horizontal)
                     .padding(.bottom, 8)
-            }
+                
+                // Top 10 keys section
+                if showTopKeys {
+                    TopKeysView()
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                }
             
-            // Add a ScrollView to ensure the keyboard is always accessible
+                // Add a ScrollView to ensure the keyboard is always accessible
             ScrollView([.horizontal, .vertical]) {
                 VStack(spacing: 4) {
                     ForEach(keyboardRows.indices, id: \.self) { rowIndex in
@@ -236,6 +246,10 @@ struct KeyboardHeatMapView: View {
                 .cornerRadius(10)
                 .padding(.horizontal)
                 .padding(.top, 8)
+                } else {
+                    // Shortcuts heat map
+                    ShortcutHeatMapView()
+                }
             } else {
                 // Shortcuts heat map
                 ShortcutHeatMapView()
