@@ -107,7 +107,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
         // Create the main window but don't show it
         mainWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 700),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: true
@@ -158,16 +158,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let screenRect = screen.visibleFrame
         
         // Calculate window size and position
-        let windowWidth: CGFloat = 650
-        let windowHeight: CGFloat = 900
+        let windowWidth: CGFloat = 420
+        let windowHeight: CGFloat = 700
         
         // If history window already exists, just show it
         if historyWindow == nil {
             // Create a borderless window positioned offscreen to the RIGHT
             historyWindow = NSWindow(
                 contentRect: NSRect(
-                    x: screenRect.maxX, // Position it offscreen to the right
-                    y: screenRect.maxY - windowHeight,
+                    x: screenRect.maxX - 20, // Position it offscreen to the right
+                    y: screenRect.maxY - windowHeight - 20,
                     width: windowWidth,
                     height: windowHeight
                 ),
@@ -240,8 +240,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             // Animate both position and opacity
             historyWindow?.animator().setFrame(
                 NSRect(
-                    x: screenRect.maxX - windowWidth - 20, // 20px more to the left 
-                    y: screenRect.maxY - windowHeight - 20, // 20px more down
+                    x: screenRect.maxX - windowWidth - 20,
+                    y: screenRect.maxY - windowHeight - 20,
                     width: windowWidth,
                     height: windowHeight
                 ),
@@ -293,7 +293,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             window.animator().setFrame(
                 NSRect(
                     x: screen.visibleFrame.maxX, // Move offscreen to the right
-                    y: window.frame.minY,  // Keep the vertical position the same when closing
+                    y: window.frame.minY,
                     width: window.frame.width,
                     height: window.frame.height
                 ),
