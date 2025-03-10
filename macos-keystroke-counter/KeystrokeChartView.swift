@@ -4,6 +4,7 @@ import Charts
 struct KeystrokeChartView: View {
     @State private var historyData: [(date: String, count: Int)] = []
     @State private var selectedDays: Int = 7
+    @State private var selectedTab = 0
     var highlightToday: Bool = false {
         didSet {
             if oldValue != highlightToday {
@@ -42,43 +43,56 @@ struct KeystrokeChartView: View {
                 .padding([.horizontal, .top])
             }
             
-            Text("History")
-                .font(.title)
-                .padding(.top, 4)
-            
-            Picker("Time Period", selection: $selectedDays) {
-                Text("7 Days").tag(7)
-                Text("14 Days").tag(14)
-                Text("30 Days").tag(30)
+            Picker("View", selection: $selectedTab) {
+                Text("History").tag(0)
+                Text("Heat Map").tag(1)
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
-            .onChange(of: selectedDays) { _ in
-                loadData()
-            }
             
-            if historyData.isEmpty {
-                Text("No history data available")
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else {
-                // Chart in a rounded blurred container
-                VStack {
-                    Chart {
-                        ForEach(historyData, id: \.date) { item in
-                            BarMark(
-                                x: .value("Date", formatDate(item.date)),
-                                y: .value("Keystrokes", item.count)
-                            )
-                            .foregroundStyle(Color.blue.gradient)
-                        }
-                    }
-                    .frame(height: 250)
-                    .padding()
+            if selectedTab == 0 {
+                Text("History")
+                    .font(.title)
+                    .padding(.top, 4)
+                
+                Picker("Time Period", selection: $selectedDays) {
+                    Text("7 Days").tag(7)
+                    Text("14 Days").tag(14)
+                    Text("30 Days").tag(30)
                 }
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
+                .pickerStyle(SegmentedPickerStyle())
                 .padding(.horizontal)
+                .onChange(of: selectedDays) { _ in
+                    loadData()
+                }
+                
+                if historyData.isEmpty {
+                    Text("No history data available")
+                        .foregroundColor(.secondary)
+                        .padding()
+                } else {
+                    // Chart in a rounded blurred container
+                    VStack {
+                        Chart {
+                            ForEach(historyData, id: \.date) { item in
+                                BarMark(
+                                    x: .value("Date", formatDate(item.date)),
+                                    y: .value("Keystrokes", item.count)
+                                )
+                                .foregroundStyle(Color.blue.gradient)
+                            }
+                        }
+                        .frame(height: 250)
+                        .padding()
+                    }
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                }
+            } else {
+                // Heat Map tab
+                KeyboardHeatMapView()
+                    .padding(.horizontal)
             }
             
             // Add spacer to push content up

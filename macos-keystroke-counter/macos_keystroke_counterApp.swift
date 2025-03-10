@@ -342,6 +342,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         totalKeystrokes += 1
         updateKeystrokesCount()
 
+        // Get the key code and record it in the tracker
+        let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+        KeyUsageTracker.shared.recordKeyPress(keyCode: keyCode)
+
         // Check if it's a new day
         if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
             // Save yesterday's count
@@ -419,6 +423,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             CGEvent.tapEnable(tap: eventTap, enable: false)
         }
         NSApplication.shared.terminate(self)
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        KeyUsageTracker.shared.saveData()
     }
 }
 
