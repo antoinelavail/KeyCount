@@ -117,9 +117,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Initialize ApplicationMenu only once
         menu = ApplicationMenu(mainWindow: mainWindow, appDelegate: self)
 
-        // Create the menu
-        menu.buildMenu()
-
         // Don't set the menu to allow direct click handling
         statusItem.button?.action = #selector(statusItemClicked)
         statusItem.button?.target = self
@@ -448,40 +445,6 @@ class ApplicationMenu: ObservableObject {
         
         // Check current login item status
         self.launchAtLogin = isLaunchAtLoginEnabled()
-        
-        buildMenu()
-    }
-
-    func buildMenu() {
-        menu = NSMenu()
-
-        // Add launch at login item
-        let launchAtLoginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLoginSetting), keyEquivalent: "")
-        launchAtLoginItem.target = self
-        launchAtLoginItem.state = launchAtLogin ? .on : .off
-        
-        // Just keep the website and quit items
-        let websiteItem = NSMenuItem(title: "Website", action: #selector(goToWebsite), keyEquivalent: "")
-        websiteItem.target = self
-
-        menu.addItem(launchAtLoginItem)
-        menu.addItem(websiteItem)
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(withTitle: "Quit", action: #selector(terminateApp), keyEquivalent: "q")
-    }
-    
-    @objc func showHistory() {
-        AppDelegate.instance.showHistoryWindow()
-    }
-
-    @objc func goToWebsite() {
-        if let url = URL(string: "https://github.com/MarcusDelvecchio/macos-keystroke-counter") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    @objc func terminateApp() {
-        NSApplication.shared.terminate(self)
     }
 
     @objc func toggleMenu() {
