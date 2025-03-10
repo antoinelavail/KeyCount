@@ -38,38 +38,13 @@ struct ShortcutHeatMapView: View {
                 } else {
                     VStack(spacing: 6) {
                         ForEach(0..<min(10, topShortcuts.count), id: \.self) { index in
-                            HStack {
-                                Text("\(index + 1).")
-                                    .font(.system(.body, design: .monospaced))
-                                    .foregroundColor(.secondary)
-                                    .frame(width: 30, alignment: .trailing)
-                                
-                                Text(topShortcuts[index].description)
-                                    .font(.system(.body, design: .monospaced))
-                                    .fontWeight(.medium)
-                                    .frame(minWidth: 100, alignment: .leading)
-                                    .padding(.horizontal, 8)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(shortcutColor(for: index))
-                                    )
-                                
-                                Text("\(topShortcuts[index].count) times")
-                                    .font(.body)
-                                
-                                Spacer()
-                                
-                                // Percentage of total
-                                if let totalShortcuts = getTotalShortcuts() {
-                                    let percentage = Double(topShortcuts[index].count) / Double(totalShortcuts) * 100
-                                    Text(String(format: "%.1f%%", percentage))
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
-                                }
-                                .transition(.slide.combined(with: .opacity))
-                                .animation(.spring(response: 0.3, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedTimeRange)
-                                .id("\(selectedTimeRange)-\(index)") // Important for transitions
-                            }
+                            ShortcutListItem(
+                                index: index,
+                                shortcut: topShortcuts[index],
+                                totalShortcuts: getTotalShortcuts(),
+                                timeRange: selectedTimeRange
+                            )
+                            .animation(.spring(response: 0.3, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedTimeRange)
                         }
                     }
                     .padding(8)
@@ -93,31 +68,14 @@ struct ShortcutHeatMapView: View {
                     if !topShortcuts.isEmpty {
                         VStack(spacing: 8) {
                             ForEach(0..<min(15, topShortcuts.count), id: \.self) { index in
-                                HStack {
-                                    Text(topShortcuts[index].description)
-                                        .font(.system(.body, design: .monospaced))
-                                        .frame(width: 100, alignment: .leading)
-                                    
-                                    GeometryReader { geometry in
-                                        ZStack(alignment: .leading) {
-                                            Rectangle()
-                                                .frame(width: geometry.size.width, height: 24)
-                                                .opacity(0.1)
-                                                .cornerRadius(4)
-                                            
-                                            Rectangle()
-                                                .frame(width: max(4, CGFloat(topShortcuts[index].count) / CGFloat(maxCount) * geometry.size.width), height: 24)
-                                                .foregroundColor(shortcutColor(for: index))
-                                                .cornerRadius(4)
-                                            
-                                            Text("\(topShortcuts[index].count)")
-                                                .font(.caption)
-                                                .padding(.leading, 8)
-                                                .foregroundColor(.white)
-                                        }
-                                    }
-                                    .frame(height: 24)
-                                }
+                                ShortcutBarView(
+                                    index: index,
+                                    shortcut: topShortcuts[index],
+                                    maxCount: maxCount
+                                )
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.3).delay(Double(index) * 0.03), value: selectedTimeRange)
+                                .id("\(selectedTimeRange)-viz-\(index)")
                             }
                         }
                         .padding()
@@ -143,21 +101,92 @@ struct ShortcutHeatMapView: View {
         let total = topShortcuts.reduce(0) { $0 + $1.count }
         return total > 0 ? total : nil
     }
+}
+
+// Component for individual shortcut list items
+struct ShortcutListItem: View {
+    let index: Int
+    let shortcut: (shortcut: KeyboardShortcut, count: Int, description: String)
+    let totalShortcuts: Int?
+    let timeRange: TimeRange
+    
+    var body: some View {
+        HStack {
+            Text("\(index + 1).")
+                .font(.system(.body, design: .monospaced))
+                .foregroundColor(.secondary)
+                .frame(width: 30, alignment: .trailing)
+            
+            Text(shortcut.description)
+                .font(.system(.body, design: .monospaced))
+                .fontWeight(.medium)
+                .frame(minWidth: 100, alignment: .leading)
+                .padding(.horizontal, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(shortcutColor(for: index))
+                )
+            
+            Text("\(shortcut.count) times")
+                .font(.body)
+            
+            Spacer()
+            
+            // Percentage of total
+            if let total = totalShortcuts {
+                let percentage = Double(shortcut.count) / Double(total) * 100
+                Text(String(format: "%.1f%%", percentage))
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .transition(.asymmetric(
+            insertion: .move(edge: .trailing).combined(with: .opacity),
+            removal: .move(edge: .leading).combined(with: .opacity)
+        ))
+        .id("\(timeRange)-\(index)")
+    }
     
     private func shortcutColor(for index: Int) -> Color {
-        let colors: [Color] = [
-            Color(red: 0.95, green: 0.71, blue: 0.76),  // 1st - Pastel pink/red
-            Color(red: 0.95, green: 0.78, blue: 0.66),  // 2nd - Pastel orange
-            Color(red: 0.95, green: 0.95, blue: 0.7),   // 3rd - Pastel yellow
-            Color(red: 0.69, green: 0.9, blue: 0.69),   // 4th - Pastel green
-            Color(red: 0.68, green: 0.85, blue: 0.9),   // 5th - Pastel blue
-            Color(red: 0.8, green: 0.7, blue: 0.9),     // 6th - Pastel purple
-            Color(red: 0.9, green: 0.7, blue: 0.85),    // 7th - Pastel magenta
-            Color(red: 0.75, green: 0.88, blue: 0.8),   // 8th - Pastel teal
-            Color(red: 0.85, green: 0.8, blue: 0.75),   // 9th - Pastel brown
-            Color(red: 0.8, green: 0.8, blue: 0.8)      // 10th - Pastel gray
-        ]
-        
-        return index < colors.count ? colors[index] : Color.gray.opacity(0.3)
+        return ColorUtility.indexColor(index: index)
+    }
+}
+
+// Component for visualization bars
+struct ShortcutBarView: View {
+    let index: Int
+    let shortcut: (shortcut: KeyboardShortcut, count: Int, description: String)
+    let maxCount: Int
+    
+    var body: some View {
+        HStack {
+            Text(shortcut.description)
+                .font(.system(.body, design: .monospaced))
+                .frame(width: 100, alignment: .leading)
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .frame(width: geometry.size.width, height: 24)
+                        .opacity(0.1)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .frame(width: max(4, CGFloat(shortcut.count) / CGFloat(maxCount) * geometry.size.width), height: 24)
+                        .foregroundColor(shortcutColor(for: index))
+                        .cornerRadius(4)
+                    
+                    Text("\(shortcut.count)")
+                        .font(.caption)
+                        .padding(.leading, 8)
+                        .foregroundColor(.white)
+                }
+            }
+            .frame(height: 24)
+        }
+    }
+    
+    private func shortcutColor(for index: Int) -> Color {
+        return ColorUtility.indexColor(index: index)
     }
 }
