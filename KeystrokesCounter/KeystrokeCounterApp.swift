@@ -108,12 +108,71 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Register for key events using event tap
         setupEventTap()
         
+        // Setup statsWindow at launch time
+        initializeStatsWindow()
         
         // Check if we need to reset daily count
         if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
             keystrokeCount = 0
             updateKeystrokesCount()
         }
+    }
+    
+    // New method to create and initialize the window once
+    private func initializeStatsWindow() {
+        // Get main screen dimensions
+        guard let screen = NSScreen.main else { return }
+        let screenRect = screen.visibleFrame
+        
+        // Calculate window size and position
+        let windowWidth: CGFloat = 420
+        let windowHeight: CGFloat = 700
+        
+        // Create a borderless window positioned offscreen to the RIGHT
+        statsWindow = NSWindow(
+            contentRect: NSRect(
+                x: screenRect.maxX, // Position it offscreen to the right
+                y: screenRect.maxY - windowHeight - 20,
+                width: windowWidth,
+                height: windowHeight
+            ),
+            styleMask: [.borderless, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        
+        statsWindow?.backgroundColor = NSColor.clear
+        statsWindow?.alphaValue = 0.0
+        statsWindow?.isOpaque = true
+        statsWindow?.hasShadow = false
+        statsWindow?.level = .statusBar
+        statsWindow?.delegate = self
+        statsWindow?.titlebarAppearsTransparent = true
+        
+        // Configure the view with a notification publisher for animation timing
+        let animationManager = WindowAnimationManager()
+        let hostingController = NSHostingController(
+            rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                .environmentObject(animationManager)
+        )
+        let hostingView = hostingController.view
+        hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
+        
+        // Make sure the hostingView doesn't overflow the corners
+        hostingView.wantsLayer = true
+        hostingView.layer?.cornerRadius = 12
+        hostingView.layer?.masksToBounds = true
+
+        // Add views in the correct order
+        statsWindow?.contentView = hostingView
+        
+        // Make corners rounded
+        statsWindow?.contentView?.wantsLayer = true
+        statsWindow?.contentView?.layer?.cornerRadius = 12
+        statsWindow?.contentView?.layer?.masksToBounds = false
+        statsWindow?.contentView?.layer?.shadowOpacity = 0.3
+        statsWindow?.contentView?.layer?.shadowRadius = 8
+        statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
     }
     
     func updateStatsView() {
@@ -142,57 +201,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let windowWidth: CGFloat = 420
         let windowHeight: CGFloat = 700
         
-        // If statistics window already exists, just show it
-        if statsWindow == nil {
-            // Create a borderless window positioned offscreen to the RIGHT
-            statsWindow = NSWindow(
-                contentRect: NSRect(
-                    x: screenRect.maxX - 20, // Position it offscreen to the right
-                    y: screenRect.maxY - windowHeight - 20,
-                    width: windowWidth,
-                    height: windowHeight
-                ),
-                styleMask: [.borderless, .fullSizeContentView],
-                backing: .buffered,
-                defer: false
-            )
-            
-            statsWindow?.backgroundColor = NSColor.clear
-            statsWindow?.alphaValue = 0.0
-            statsWindow?.isOpaque = true
-            statsWindow?.hasShadow = false
-            statsWindow?.level = .statusBar
-            statsWindow?.delegate = self
-            statsWindow?.titlebarAppearsTransparent = true
-            
-            // Configure the view with a notification publisher for animation timing
-            let animationManager = WindowAnimationManager()
-            let hostingController = NSHostingController(
-                rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                    .environmentObject(animationManager)
-            )
-            let hostingView = hostingController.view
-            hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
-            
-            // Make sure the hostingView doesn't overflow the corners
-            hostingView.wantsLayer = true
-            hostingView.layer?.cornerRadius = 12
-            hostingView.layer?.masksToBounds = true
-
-            // Add views in the correct order
-            statsWindow?.contentView = hostingView
-            
-            // Make corners rounded
-            statsWindow?.contentView?.wantsLayer = true
-            statsWindow?.contentView?.layer?.cornerRadius = 12 // Increase from 10 to 12 for more visible rounding
-            statsWindow?.contentView?.layer?.masksToBounds = false
-            statsWindow?.contentView?.layer?.shadowOpacity = 0.3
-            statsWindow?.contentView?.layer?.shadowRadius = 8
-            statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
-        } else {
-            // Update the view with current data
-            updateStatsView()
-        }
+        // Update the content view with current data
+        updateStatsView()
         
         // Show the window and bring it to the front
         statsWindow?.orderFront(nil)
@@ -201,7 +211,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Combined fade + RIGHT-TO-LEFT slide animation
         NSAnimationContext.runAnimationGroup({ context in
             context.allowsImplicitAnimation = true
-            context.duration = 0.45
+            context.duration = 0.2
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             
             // Animate both position and opacity
