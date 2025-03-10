@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 // Define a struct to represent a keyboard shortcut
 struct KeyboardShortcut: Hashable, Codable {
