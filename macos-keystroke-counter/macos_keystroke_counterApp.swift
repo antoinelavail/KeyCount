@@ -21,10 +21,29 @@ struct KeystrokeTrackerApp: App {
     }
 }
 
+struct VisualEffectView: NSViewRepresentable {
+    let material: NSVisualEffectView.Material
+    let blendingMode: NSVisualEffectView.BlendingMode
+    
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let visualEffectView = NSVisualEffectView()
+        visualEffectView.material = material
+        visualEffectView.blendingMode = blendingMode
+        visualEffectView.state = .active
+        return visualEffectView
+    }
+    
+    func updateNSView(_ visualEffectView: NSVisualEffectView, context: Context) {
+        visualEffectView.material = material
+        visualEffectView.blendingMode = blendingMode
+    }
+}
+
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
     var activity: NSObjectProtocol?
     var mainWindow: NSWindow!
     var historyWindow: NSWindow?
+    private var eventMonitor: Any?
     static private(set) var instance: AppDelegate!
     lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var updateInterval = Int(UserDefaults.standard.string(forKey: "updateInterval") ?? "30") ?? 30
@@ -137,29 +156,122 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     @objc func showHistoryWindow() {
+        // Get main screen dimensions
+        guard let screen = NSScreen.main else { return }
+        let screenRect = screen.visibleFrame
+        
+        // Calculate window size and position
+        let windowWidth: CGFloat = 360
+        let windowHeight = screenRect.height * 0.8
+        
+        // If history window already exists, just show it
         if historyWindow == nil {
+            // Create a borderless window
             historyWindow = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                contentRect: NSRect(
+                    x: screenRect.maxX, // Start offscreen
+                    y: screenRect.maxY - windowHeight,
+                    width: windowWidth,
+                    height: windowHeight
+                ),
+                styleMask: [.borderless, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
-            historyWindow?.title = "Keystroke History"
-            historyWindow?.center()
-            historyWindow?.delegate = self  // Set the delegate
             
-            let hostingView = NSHostingView(rootView: KeystrokeChartView())
+            historyWindow?.backgroundColor = NSColor.windowBackgroundColor
+            historyWindow?.isOpaque = false
+            historyWindow?.hasShadow = true
+            historyWindow?.level = .statusBar
+            historyWindow?.delegate = self
+            
+            // Configure the view
+            let hostingView = NSHostingView(rootView: 
+                KeystrokeChartView()
+                    .frame(width: windowWidth, height: windowHeight)
+                    .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
+            )
             historyWindow?.contentView = hostingView
+            
+            // Make corners rounded
+            historyWindow?.contentView?.wantsLayer = true
+            historyWindow?.contentView?.layer?.cornerRadius = 10
+            historyWindow?.contentView?.layer?.masksToBounds = true
         }
         
-        historyWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        // Show the window and bring it to the front
+        historyWindow?.orderFront(nil)
+        historyWindow?.makeKey()
+        
+        // Animate the window sliding in
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.3
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            historyWindow?.animator().setFrame(
+                NSRect(
+                    x: screenRect.maxX - windowWidth,
+                    y: screenRect.maxY - windowHeight,
+                    width: windowWidth,
+                    height: windowHeight
+                ),
+                display: true
+            )
+        })
+        
+        // Set up event monitoring to close the window when focus is lost
+        setupEventMonitoring()
+    }
+    
+    func setupEventMonitoring() {
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self = self, let window = self.historyWindow else { return }
+            
+            // Check if the click was outside the window
+            if let clickedWindow = event.window, clickedWindow == window {
+                return
+            }
+            
+            // Close the window
+            self.closeHistoryWindow()
+        }
+    }
+    
+    func closeHistoryWindow() {
+        guard let window = historyWindow, let screen = NSScreen.main else { return }
+        
+        // Remove event monitor
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+        
+        // Animate the window sliding out
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.2
+            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            window.animator().setFrame(
+                NSRect(
+                    x: screen.visibleFrame.maxX,
+                    y: window.frame.minY,
+                    width: window.frame.width,
+                    height: window.frame.height
+                ),
+                display: true
+            )
+        }, completionHandler: {
+            self.historyWindow?.orderOut(nil)
+            self.historyWindow = nil
+        })
     }
     
     // Window delegate method to handle window closing
     func windowWillClose(_ notification: Notification) {
         if let window = notification.object as? NSWindow, window == historyWindow {
-            // When window closes, set reference to nil
+            // Remove event monitor
+            if let monitor = eventMonitor {
+                NSEvent.removeMonitor(monitor)
+                eventMonitor = nil
+            }
             historyWindow = nil
         }
     }
