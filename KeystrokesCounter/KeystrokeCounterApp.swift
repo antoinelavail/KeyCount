@@ -136,14 +136,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     func updateHistoryView() {
-        if let window = historyWindow, 
+        if let window = historyWindow,
            let hostingView = window.contentView?.subviews.first as? NSHostingView<KeystrokeChartView> {
             // Create a new animation manager for the updated view
             let animationManager = WindowAnimationManager()
             
             // Update the view with the new manager
             hostingView.rootView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                .environmentObject(animationManager)
+                .environmentObject(animationManager) as! KeystrokeChartView
             
             // Trigger the animations after a brief delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
