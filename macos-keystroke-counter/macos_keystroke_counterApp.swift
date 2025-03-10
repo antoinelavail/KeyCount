@@ -117,6 +117,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                     attributes: [NSAttributedString.Key.baselineOffset: offset]
                 )
             }
+            
+            // Add direct action for left mouse down
+            button.target = self
+            button.action = #selector(statusItemClicked)
         }
 
         // Create the main window but don't show it
@@ -134,8 +138,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Create the menu
         menu.buildMenu()
 
-        statusItem.menu = menu.menu
-        statusItem.button?.action = #selector(menu.toggleMenu)
+        // Don't set the menu to allow direct click handling
+        statusItem.button?.action = #selector(statusItemClicked)
+        statusItem.button?.target = self
 
         // Request accessibility permissions
         requestAccessibilityPermission()
@@ -394,6 +399,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
 
+    @objc func statusItemClicked() {
+        // Show history window directly on left click
+        showHistoryWindow()
+    }
+    
     @objc func terminateApp() {
         UserDefaults.standard.synchronize()
         if let eventTap = eventTap {
@@ -469,8 +479,10 @@ class ApplicationMenu: ObservableObject {
     }
 
     @objc func toggleMenu() {
-        // Show the history view directly instead of the menu
-        AppDelegate.instance.showHistoryWindow()
+        // Get a direct reference to the app delegate
+        if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
+            appDelegate.showHistoryWindow()
+        }
     }
 }
 
