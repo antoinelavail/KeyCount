@@ -283,12 +283,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         if count < 1000 {
             return "\(count)"
         } else if count < 1_000_000 {
+            // Divide by 1000.0 to get the thousands value
             let thousands = Double(count) / 1000.0
-            return String(format: "%.1fk", thousands)
+            // Truncate to one decimal place without rounding
+            let truncated = floor(thousands * 10) / 10
+            return String(format: "%.1fk", truncated)
                 .replacingOccurrences(of: ".0k", with: "k") // Remove decimal if it's .0
         } else {
+            // Same for millions
             let millions = Double(count) / 1_000_000.0
-            return String(format: "%.1fM", millions)
+            let truncated = floor(millions * 10) / 10
+            return String(format: "%.1fM", truncated)
                 .replacingOccurrences(of: ".0M", with: "M") // Remove decimal if it's .0
         }
     }
