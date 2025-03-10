@@ -115,7 +115,7 @@ struct KeystrokeChartView: View {
             .padding(.top, 8)
             .padding(.bottom, 24) // Increased bottom padding
         }
-        .frame(width: 360)
+        .frame(minWidth: 360, idealWidth: 700, maxWidth: .infinity)
         .padding(.top, 8)
         .padding(.bottom, 16) // Increased bottom padding
         .onAppear {

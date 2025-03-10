@@ -109,23 +109,28 @@ struct KeyboardHeatMapView: View {
                 .font(.headline)
                 .padding(.bottom, 4)
             
-            VStack(spacing: 4) {
-                ForEach(keyboardRows.indices, id: \.self) { rowIndex in
-                    HStack(spacing: 4) {
-                        ForEach(keyboardRows[rowIndex].indices, id: \.self) { keyIndex in
-                            let keyInfo = keyboardRows[rowIndex][keyIndex]
-                            KeyView(
-                                keyInfo: keyInfo,
-                                usageCount: keyTracker.getKeyCount(for: keyInfo.keyCode),
-                                maxCount: maxCount
-                            )
+            // Add a ScrollView to ensure the keyboard is always accessible
+            ScrollView([.horizontal, .vertical]) {
+                VStack(spacing: 4) {
+                    ForEach(keyboardRows.indices, id: \.self) { rowIndex in
+                        HStack(spacing: 4) {
+                            ForEach(keyboardRows[rowIndex].indices, id: \.self) { keyIndex in
+                                let keyInfo = keyboardRows[rowIndex][keyIndex]
+                                KeyView(
+                                    keyInfo: keyInfo,
+                                    usageCount: keyTracker.getKeyCount(for: keyInfo.keyCode),
+                                    maxCount: maxCount
+                                )
+                            }
                         }
                     }
                 }
+                .padding(8)
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
             }
-            .padding(8)
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
+            // Set minimum height for the scroll area
+            .frame(minHeight: 300)
             
             HStack(spacing: 0) {
                 ForEach(0..<5) { i in
@@ -154,6 +159,7 @@ struct KeyboardHeatMapView: View {
             }
             .padding(.horizontal)
         }
+        .frame(maxWidth: .infinity) // Allow view to use all available width
         .padding()
         .onAppear {
             // Get max count when view appears
@@ -186,8 +192,9 @@ struct KeyView: View {
     let usageCount: Int
     let maxCount: Int
     
-    private let baseWidth: CGFloat = 34
-    private let baseHeight: CGFloat = 34
+    // Adjust the base size to be slightly smaller for better fit
+    private let baseWidth: CGFloat = 30
+    private let baseHeight: CGFloat = 30
     
     var body: some View {
         Text(keyInfo.label)

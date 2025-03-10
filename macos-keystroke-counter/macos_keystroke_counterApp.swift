@@ -174,8 +174,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let screenRect = screen.visibleFrame
         
         // Calculate window size and position
-        let windowWidth: CGFloat = 360
-        let windowHeight: CGFloat = 600 // Increased height to prevent content cut-off
+        let windowWidth: CGFloat = 700  // Increased from 360 to 700 
+        let windowHeight: CGFloat = 700 // Increased from 600 to 700
         
         // If history window already exists, just show it
         if historyWindow == nil {
