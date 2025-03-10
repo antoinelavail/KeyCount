@@ -1,6 +1,7 @@
 import SwiftUI
 import ApplicationServices
 import Charts
+import ServiceManagement
 
 @main
 struct KeystrokeTrackerApp: App {
@@ -434,21 +435,36 @@ class ApplicationMenu: ObservableObject {
             appDelegate.updateKeystrokesCount()
         }
     }
+    @Published var launchAtLogin: Bool = false {
+        didSet {
+            toggleLaunchAtLogin(enabled: launchAtLogin)
+        }
+    }
 
     init(mainWindow: NSWindow?, appDelegate: AppDelegate) {
         self.mainWindow = mainWindow
         self.appDelegate = appDelegate
         self.showNumbersOnly = UserDefaults.standard.bool(forKey: "ShowNumbersOnly")
+        
+        // Check current login item status
+        self.launchAtLogin = isLaunchAtLoginEnabled()
+        
         buildMenu()
     }
 
     func buildMenu() {
         menu = NSMenu()
 
+        // Add launch at login item
+        let launchAtLoginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLoginSetting), keyEquivalent: "")
+        launchAtLoginItem.target = self
+        launchAtLoginItem.state = launchAtLogin ? .on : .off
+        
         // Just keep the website and quit items
         let websiteItem = NSMenuItem(title: "Website", action: #selector(goToWebsite), keyEquivalent: "")
         websiteItem.target = self
 
+        menu.addItem(launchAtLoginItem)
         menu.addItem(websiteItem)
         menu.addItem(NSMenuItem.separator())
         menu.addItem(withTitle: "Quit", action: #selector(terminateApp), keyEquivalent: "q")
@@ -472,6 +488,56 @@ class ApplicationMenu: ObservableObject {
         // Get a direct reference to the app delegate
         if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
             appDelegate.showHistoryWindow()
+        }
+    }
+    
+    // Login item management methods
+    private func isLaunchAtLoginEnabled() -> Bool {
+        if #available(macOS 13.0, *) {
+            // For macOS 13+ we can use SMAppService
+            let service = SMAppService.mainApp
+            return service.status == .enabled
+        } else {
+            // For earlier versions we check using bundle identifier
+            let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+            if let jobs = SMCopyAllJobDictionaries(kSMDomainUserLaunchd)?.takeRetainedValue() as? [[String: AnyObject]] {
+                return jobs.contains { job in
+                    return (job["Label"] as? String) == bundleIdentifier
+                }
+            }
+            return false
+        }
+    }
+    
+    private func toggleLaunchAtLogin(enabled: Bool) {
+        if #available(macOS 13.0, *) {
+            // For macOS 13+ we can use SMAppService
+            let service = SMAppService.mainApp
+            do {
+                if enabled {
+                    if service.status == .notRegistered {
+                        try service.register()
+                    }
+                } else {
+                    if service.status == .enabled {
+                        try service.unregister()
+                    }
+                }
+            } catch {
+                print("Failed to \(enabled ? "enable" : "disable") launch at login: \(error)")
+            }
+        } else {
+            // For earlier versions we use SMLoginItemSetEnabled
+            let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+            SMLoginItemSetEnabled(bundleIdentifier as CFString, enabled)
+        }
+    }
+    
+    @objc func toggleLaunchAtLoginSetting() {
+        launchAtLogin.toggle()
+        // Update menu item state
+        if let item = menu.item(withTitle: "Launch at Login") {
+            item.state = launchAtLogin ? .on : .off
         }
     }
 }
