@@ -90,6 +90,38 @@ class KeyUsageTracker: ObservableObject {
         return keyUsageCounts.values.max() ?? 0
     }
     
+    func getCombinedKeyCount(for keyCode: UInt16) -> Int {
+        // Start with direct key presses
+        var totalCount = getKeyCount(for: keyCode)
+        
+        // If this is a modifier key, also count shortcuts that use it
+        let commandKey: UInt16 = 55
+        let shiftKey: UInt16 = 56
+        let optionKey: UInt16 = 58
+        let controlKey: UInt16 = 59
+        
+        // Count shortcuts that use this key
+        for (shortcut, count) in shortcutUsageCounts {
+            // If the shortcut uses this key directly
+            if shortcut.keyCode == keyCode {
+                totalCount += count
+            }
+            
+            // If it's a modifier key and the shortcut uses this modifier
+            if keyCode == commandKey && (shortcut.modifiers & CGEventFlags.maskCommand.rawValue) != 0 {
+                totalCount += count
+            } else if keyCode == shiftKey && (shortcut.modifiers & CGEventFlags.maskShift.rawValue) != 0 {
+                totalCount += count
+            } else if keyCode == optionKey && (shortcut.modifiers & CGEventFlags.maskAlternate.rawValue) != 0 {
+                totalCount += count
+            } else if keyCode == controlKey && (shortcut.modifiers & CGEventFlags.maskControl.rawValue) != 0 {
+                totalCount += count
+            }
+        }
+        
+        return totalCount
+    }
+    
     func getMaxShortcutCount() -> Int {
         return shortcutUsageCounts.values.max() ?? 0
     }

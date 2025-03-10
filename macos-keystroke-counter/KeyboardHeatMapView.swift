@@ -115,7 +115,7 @@ struct KeyboardHeatMapView: View {
                                 let keyInfo = keyboardRows[rowIndex][keyIndex]
                                 KeyView(
                                     keyInfo: keyInfo,
-                                    usageCount: keyTracker.getKeyCount(for: keyInfo.keyCode),
+                                    usageCount: keyTracker.getCombinedKeyCount(for: keyInfo.keyCode),
                                     maxCount: maxCount
                                 )
                             }
@@ -219,8 +219,8 @@ struct KeyboardHeatMapView: View {
             .padding(.top, 8)
         }
         .onAppear {
-            // Get max count when view appears
-            maxCount = keyTracker.getMaxCount()
+            // Calculate max count considering both direct keypresses and shortcuts
+            updateMaxCount()
         }
     }
     
@@ -235,6 +235,21 @@ struct KeyboardHeatMapView: View {
         } else {
             return Color(red: 0.95, green: 0.71, blue: 0.76)  // Pastel pink/red
         }
+    }
+    
+    private func updateMaxCount() {
+        // Get max from combined counts across all keys
+        var combinedMaxCount = 0
+        for row in keyboardRows {
+            for keyInfo in row {
+                let combinedCount = keyTracker.getCombinedKeyCount(for: keyInfo.keyCode)
+                if combinedCount > combinedMaxCount {
+                    combinedMaxCount = combinedCount
+                }
+            }
+        }
+        
+        maxCount = combinedMaxCount > 0 ? combinedMaxCount : 1
     }
 }
 
