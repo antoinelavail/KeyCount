@@ -8,17 +8,8 @@ struct KeystrokeTrackerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        Settings {
-            KeystrokeChartView()
-        }
-        .commands {
-            CommandGroup(replacing: .newItem) {}
-            CommandGroup(after: .newItem) {
-                Button("Keystroke Stats") {
-                    NSApp.sendAction(#selector(AppDelegate.showStatsWindow), to: nil, from: nil)
-                }
-            }
-        }
+        Settings {}
+        .commands {}
     }
 }
 
@@ -168,12 +159,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             
             statsWindow?.backgroundColor = NSColor.clear
             statsWindow?.alphaValue = 0.0
-            statsWindow?.isOpaque = false
-            statsWindow?.hasShadow = true
+            statsWindow?.isOpaque = true
+            statsWindow?.hasShadow = false
             statsWindow?.level = .statusBar
             statsWindow?.delegate = self
             statsWindow?.titlebarAppearsTransparent = true
-            statsWindow?.appearance = NSAppearance(named: .vibrantDark)
             
             // Configure the view with a notification publisher for animation timing
             let animationManager = WindowAnimationManager()
@@ -183,18 +173,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             )
             let hostingView = hostingController.view
             hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
-
-            // Add the visual effect as a background
-            let visualEffectView = NSVisualEffectView(frame: hostingView.bounds)
-            visualEffectView.material = .hudWindow
-            visualEffectView.blendingMode = .behindWindow
-            visualEffectView.state = .active
-            visualEffectView.autoresizingMask = [.width, .height]
-            
-            // Apply corner radius to the visual effect view itself
-            visualEffectView.wantsLayer = true
-            visualEffectView.layer?.cornerRadius = 12
-            visualEffectView.layer?.masksToBounds = true
             
             // Make sure the hostingView doesn't overflow the corners
             hostingView.wantsLayer = true
@@ -202,8 +180,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             hostingView.layer?.masksToBounds = true
 
             // Add views in the correct order
-            statsWindow?.contentView = visualEffectView
-            visualEffectView.addSubview(hostingView)
+            statsWindow?.contentView = hostingView
             
             // Make corners rounded
             statsWindow?.contentView?.wantsLayer = true
@@ -224,7 +201,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Combined fade + RIGHT-TO-LEFT slide animation
         NSAnimationContext.runAnimationGroup({ context in
             context.allowsImplicitAnimation = true
-            context.duration = 0.45 // Slightly longer for smooth effect
+            context.duration = 0.45
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             
             // Animate both position and opacity
@@ -292,20 +269,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             window.animator().alphaValue = 0.0
         }, completionHandler: {
             self.statsWindow?.orderOut(nil)
-            self.statsWindow = nil
         })
-    }
-    
-    // Window delegate method to handle window closing
-    func windowWillClose(_ notification: Notification) {
-        if let window = notification.object as? NSWindow, window == statsWindow {
-            // Remove event monitor
-            if let monitor = eventMonitor {
-                NSEvent.removeMonitor(monitor)
-                eventMonitor = nil
-            }
-            statsWindow = nil
-        }
     }
     
     private func formatKeystrokeCount(_ count: Int) -> String {
@@ -474,13 +438,6 @@ class ApplicationMenu: ObservableObject {
         
         // Check current login item status
         self.launchAtLogin = isLaunchAtLoginEnabled()
-    }
-
-    @objc func toggleMenu() {
-        // Get a direct reference to the app delegate
-        if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
-            appDelegate.showStatsWindow()
-        }
     }
     
     // Login item management methods
