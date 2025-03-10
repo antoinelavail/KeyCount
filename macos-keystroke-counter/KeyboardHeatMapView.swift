@@ -3,6 +3,7 @@ import SwiftUI
 struct KeyboardHeatMapView: View {
     @ObservedObject private var keyTracker = KeyUsageTracker.shared
     @State private var maxCount: Int = 0
+    @State private var showTopKeys: Bool = true
     
     // Define keyboard layout rows
     private let keyboardRows: [[KeyInfo]] = [
@@ -109,6 +110,18 @@ struct KeyboardHeatMapView: View {
             Text("Keyboard Heat Map")
                 .font(.title)
                 .padding(.bottom, 4)
+            
+            // Toggle for showing top keys
+            Toggle("Show Top 10 Keys", isOn: $showTopKeys)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+            
+            // Top 10 keys section
+            if showTopKeys {
+                TopKeysView()
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+            }
             
             // Add a ScrollView to ensure the keyboard is always accessible
             ScrollView([.horizontal, .vertical]) {
@@ -242,6 +255,96 @@ struct KeyboardHeatMapView: View {
         } else {
             return Color(red: 0.95, green: 0.71, blue: 0.76)  // Pastel pink/red
         }
+    }
+}
+
+// Top Keys View
+struct TopKeysView: View {
+    @ObservedObject private var keyTracker = KeyUsageTracker.shared
+    @State private var topKeys: [(keyCode: UInt16, count: Int, label: String)] = []
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Top 10 Most Used Keys")
+                .font(.headline)
+                .padding(.bottom, 4)
+            
+            if topKeys.isEmpty {
+                Text("No key usage data available")
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 6) {
+                    ForEach(0..<min(10, topKeys.count), id: \.self) { index in
+                        HStack {
+                            Text("\(index + 1).")
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.secondary)
+                                .frame(width: 30, alignment: .trailing)
+                            
+                            Text(topKeys[index].label)
+                                .font(.system(.body, design: .monospaced))
+                                .fontWeight(.medium)
+                                .frame(width: 80, alignment: .leading)
+                                .padding(.horizontal, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(keyColor(for: index))
+                                )
+                            
+                            Text("\(topKeys[index].count) keystrokes")
+                                .font(.body)
+                            
+                            Spacer()
+                            
+                            // Percentage of total
+                            if let totalKeystrokes = getTotalKeystrokes() {
+                                let percentage = Double(topKeys[index].count) / Double(totalKeystrokes) * 100
+                                Text(String(format: "%.1f%%", percentage))
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(8)
+                .background(.ultraThinMaterial)
+                .cornerRadius(8)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(8)
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
+        .onAppear {
+            loadTopKeys()
+        }
+    }
+    
+    private func loadTopKeys() {
+        topKeys = keyTracker.getTopKeys(count: 10)
+    }
+    
+    private func getTotalKeystrokes() -> Int? {
+        let total = topKeys.reduce(0) { $0 + $1.count }
+        return total > 0 ? total : nil
+    }
+    
+    private func keyColor(for index: Int) -> Color {
+        let colors: [Color] = [
+            Color(red: 0.95, green: 0.71, blue: 0.76),  // 1st - Pastel pink/red
+            Color(red: 0.95, green: 0.78, blue: 0.66),  // 2nd - Pastel orange
+            Color(red: 0.95, green: 0.95, blue: 0.7),   // 3rd - Pastel yellow
+            Color(red: 0.69, green: 0.9, blue: 0.69),   // 4th - Pastel green
+            Color(red: 0.68, green: 0.85, blue: 0.9),   // 5th - Pastel blue
+            Color(red: 0.8, green: 0.7, blue: 0.9),     // 6th - Pastel purple
+            Color(red: 0.9, green: 0.7, blue: 0.85),    // 7th - Pastel magenta
+            Color(red: 0.75, green: 0.88, blue: 0.8),   // 8th - Pastel teal
+            Color(red: 0.85, green: 0.8, blue: 0.75),   // 9th - Pastel brown
+            Color(red: 0.8, green: 0.8, blue: 0.8)      // 10th - Pastel gray
+        ]
+        
+        return index < colors.count ? colors[index] : Color.gray.opacity(0.3)
     }
 }
 
