@@ -72,6 +72,13 @@ struct KeystrokeChartView: View {
                     }
                 }
             }
+            
+            // Add Quit button
+            Button("Quit") {
+                NSApp.terminate(nil)
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.bottom)
         }
         .frame(width: 360)
         .onAppear {

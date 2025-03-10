@@ -400,8 +400,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
 
     @objc func statusItemClicked() {
-        // Show history window directly on left click
-        showHistoryWindow()
+        // If history window exists and is visible, close it
+        if let window = historyWindow, window.isVisible {
+            closeHistoryWindow()
+        } else {
+            // Otherwise, show it
+            showHistoryWindow()
+        }
     }
     
     @objc func terminateApp() {
