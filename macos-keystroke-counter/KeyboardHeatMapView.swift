@@ -6,7 +6,7 @@ struct KeyboardHeatMapView: View {
     
     // Define keyboard layout rows
     private let keyboardRows: [[KeyInfo]] = [
-        // Row 1: Function keys
+        // Row 1: Function keys (unchanged)
         [
             KeyInfo(label: "esc", keyCode: 53, width: 1.3),
             KeyInfo(label: "F1", keyCode: 122, width: 1),
@@ -22,28 +22,28 @@ struct KeyboardHeatMapView: View {
             KeyInfo(label: "F11", keyCode: 103, width: 1),
             KeyInfo(label: "F12", keyCode: 111, width: 1)
         ],
-        // Row 2: Number row
+        // Row 2: Number row (AZERTY)
         [
-            KeyInfo(label: "`", keyCode: 50, width: 1),
-            KeyInfo(label: "1", keyCode: 18, width: 1),
-            KeyInfo(label: "2", keyCode: 19, width: 1),
-            KeyInfo(label: "3", keyCode: 20, width: 1),
-            KeyInfo(label: "4", keyCode: 21, width: 1),
-            KeyInfo(label: "5", keyCode: 23, width: 1),
-            KeyInfo(label: "6", keyCode: 22, width: 1),
-            KeyInfo(label: "7", keyCode: 26, width: 1),
-            KeyInfo(label: "8", keyCode: 28, width: 1),
-            KeyInfo(label: "9", keyCode: 25, width: 1),
-            KeyInfo(label: "0", keyCode: 29, width: 1),
-            KeyInfo(label: "-", keyCode: 27, width: 1),
+            KeyInfo(label: "²", keyCode: 50, width: 1),
+            KeyInfo(label: "&", keyCode: 18, width: 1),
+            KeyInfo(label: "é", keyCode: 19, width: 1),
+            KeyInfo(label: "\"", keyCode: 20, width: 1),
+            KeyInfo(label: "'", keyCode: 21, width: 1),
+            KeyInfo(label: "(", keyCode: 23, width: 1),
+            KeyInfo(label: "§", keyCode: 22, width: 1),
+            KeyInfo(label: "è", keyCode: 26, width: 1),
+            KeyInfo(label: "!", keyCode: 28, width: 1),
+            KeyInfo(label: "ç", keyCode: 25, width: 1),
+            KeyInfo(label: "à", keyCode: 29, width: 1),
+            KeyInfo(label: ")", keyCode: 27, width: 1),
             KeyInfo(label: "=", keyCode: 24, width: 1),
             KeyInfo(label: "⌫", keyCode: 51, width: 1.5)
         ],
-        // Row 3: QWERTY row
+        // Row 3: AZERTY top row
         [
             KeyInfo(label: "⇥", keyCode: 48, width: 1.5),
-            KeyInfo(label: "Q", keyCode: 12, width: 1),
-            KeyInfo(label: "W", keyCode: 13, width: 1),
+            KeyInfo(label: "A", keyCode: 12, width: 1),
+            KeyInfo(label: "Z", keyCode: 13, width: 1),
             KeyInfo(label: "E", keyCode: 14, width: 1),
             KeyInfo(label: "R", keyCode: 15, width: 1),
             KeyInfo(label: "T", keyCode: 17, width: 1),
@@ -52,14 +52,14 @@ struct KeyboardHeatMapView: View {
             KeyInfo(label: "I", keyCode: 34, width: 1),
             KeyInfo(label: "O", keyCode: 31, width: 1),
             KeyInfo(label: "P", keyCode: 35, width: 1),
-            KeyInfo(label: "[", keyCode: 33, width: 1),
-            KeyInfo(label: "]", keyCode: 30, width: 1),
-            KeyInfo(label: "\\", keyCode: 42, width: 1)
+            KeyInfo(label: "^", keyCode: 33, width: 1),
+            KeyInfo(label: "$", keyCode: 30, width: 1),
+            KeyInfo(label: "⏎", keyCode: 36, width: 1.5)
         ],
-        // Row 4: Home row
+        // Row 4: AZERTY home row
         [
             KeyInfo(label: "⇪", keyCode: 57, width: 1.75),
-            KeyInfo(label: "A", keyCode: 0, width: 1),
+            KeyInfo(label: "Q", keyCode: 0, width: 1),
             KeyInfo(label: "S", keyCode: 1, width: 1),
             KeyInfo(label: "D", keyCode: 2, width: 1),
             KeyInfo(label: "F", keyCode: 3, width: 1),
@@ -68,26 +68,27 @@ struct KeyboardHeatMapView: View {
             KeyInfo(label: "J", keyCode: 38, width: 1),
             KeyInfo(label: "K", keyCode: 40, width: 1),
             KeyInfo(label: "L", keyCode: 37, width: 1),
-            KeyInfo(label: ";", keyCode: 41, width: 1),
-            KeyInfo(label: "'", keyCode: 39, width: 1),
-            KeyInfo(label: "⏎", keyCode: 36, width: 1.75)
+            KeyInfo(label: "M", keyCode: 41, width: 1),
+            KeyInfo(label: "ù", keyCode: 39, width: 1),
+            KeyInfo(label: "*", keyCode: 42, width: 1)
         ],
-        // Row 5: Bottom row
+        // Row 5: AZERTY bottom row
         [
-            KeyInfo(label: "⇧", keyCode: 56, width: 2.25),
-            KeyInfo(label: "Z", keyCode: 6, width: 1),
+            KeyInfo(label: "⇧", keyCode: 56, width: 1.5),
+            KeyInfo(label: "<", keyCode: 50, width: 1),
+            KeyInfo(label: "W", keyCode: 6, width: 1),
             KeyInfo(label: "X", keyCode: 7, width: 1),
             KeyInfo(label: "C", keyCode: 8, width: 1),
             KeyInfo(label: "V", keyCode: 9, width: 1),
             KeyInfo(label: "B", keyCode: 11, width: 1),
             KeyInfo(label: "N", keyCode: 45, width: 1),
-            KeyInfo(label: "M", keyCode: 46, width: 1),
             KeyInfo(label: ",", keyCode: 43, width: 1),
-            KeyInfo(label: ".", keyCode: 47, width: 1),
-            KeyInfo(label: "/", keyCode: 44, width: 1),
-            KeyInfo(label: "⇧", keyCode: 56, width: 2.25)
+            KeyInfo(label: ";", keyCode: 47, width: 1),
+            KeyInfo(label: ":", keyCode: 44, width: 1),
+            KeyInfo(label: "!", keyCode: 48, width: 1),
+            KeyInfo(label: "⇧", keyCode: 56, width: 1.5)
         ],
-        // Row 6: Spacebar row
+        // Row 6: Spacebar row (mostly unchanged)
         [
             KeyInfo(label: "fn", keyCode: 63, width: 1.25),
             KeyInfo(label: "⌃", keyCode: 59, width: 1.25),
@@ -170,13 +171,13 @@ struct KeyboardHeatMapView: View {
     private func heatGradient(percentage: Double) -> Color {
         let adjusted = min(1.0, max(0.0, percentage))
         if adjusted < 0.25 {
-            return Color(red: 0, green: 0, blue: 1.0)  // Blue
+            return Color(red: 0.68, green: 0.85, blue: 0.9)  // Pastel blue
         } else if adjusted < 0.5 {
-            return Color(red: 0, green: 1.0, blue: 1.0)  // Cyan
+            return Color(red: 0.69, green: 0.9, blue: 0.69)  // Pastel green
         } else if adjusted < 0.75 {
-            return Color(red: 1.0, green: 1.0, blue: 0)  // Yellow
+            return Color(red: 0.95, green: 0.95, blue: 0.7)  // Pastel yellow
         } else {
-            return Color(red: 1.0, green: 0, blue: 0)  // Red
+            return Color(red: 0.95, green: 0.71, blue: 0.76)  // Pastel pink/red
         }
     }
 }
@@ -215,13 +216,13 @@ struct KeyView: View {
         if percentage < 0.001 {
             return Color.gray.opacity(0.3) // Almost unused keys
         } else if percentage < 0.25 {
-            return Color(red: 0, green: 0, blue: 1.0)  // Blue for low usage
+            return Color(red: 0.68, green: 0.85, blue: 0.9)  // Pastel blue for low usage
         } else if percentage < 0.5 {
-            return Color(red: 0, green: 1.0, blue: 1.0)  // Cyan for medium-low usage
+            return Color(red: 0.69, green: 0.9, blue: 0.69)  // Pastel green for medium-low usage
         } else if percentage < 0.75 {
-            return Color(red: 1.0, green: 1.0, blue: 0)  // Yellow for medium-high usage
+            return Color(red: 0.95, green: 0.95, blue: 0.7)  // Pastel yellow for medium-high usage
         } else {
-            return Color(red: 1.0, green: 0, blue: 0)  // Red for high usage
+            return Color(red: 0.95, green: 0.71, blue: 0.76)  // Pastel pink/red for high usage
         }
     }
 }
