@@ -1,10 +1,41 @@
 import Foundation
 
+// Define a struct to represent a keyboard shortcut
+struct KeyboardShortcut: Hashable, Codable {
+    let keyCode: UInt16
+    let modifiers: UInt64  // Using UInt64 to match CGEventFlags
+    
+    func description() -> String {
+        var parts: [String] = []
+        
+        // Add modifier symbols
+        if modifiers & CGEventFlags.maskCommand.rawValue != 0 {
+            parts.append("⌘")
+        }
+        if modifiers & CGEventFlags.maskShift.rawValue != 0 {
+            parts.append("⇧")
+        }
+        if modifiers & CGEventFlags.maskAlternate.rawValue != 0 {
+            parts.append("⌥")
+        }
+        if modifiers & CGEventFlags.maskControl.rawValue != 0 {
+            parts.append("⌃")
+        }
+        
+        // Add the key
+        parts.append(KeyUsageTracker.shared.keyCodeToString(keyCode))
+        
+        return parts.joined(separator: "+")
+    }
+}
+
 class KeyUsageTracker: ObservableObject {
     static let shared = KeyUsageTracker()
     
     @Published private var keyUsageCounts: [UInt16: Int] = [:]
+    @Published private var shortcutUsageCounts: [KeyboardShortcut: Int] = [:]
     private let userDefaultsKey = "keyUsageCounts"
+    private let shortcutUserDefaultsKey = "shortcutUsageCounts"
     
     init() {
         loadData()
@@ -15,12 +46,26 @@ class KeyUsageTracker: ObservableObject {
         saveData()
     }
     
+    func recordShortcut(keyCode: UInt16, modifiers: UInt64) {
+        let shortcut = KeyboardShortcut(keyCode: keyCode, modifiers: modifiers)
+        shortcutUsageCounts[shortcut, default: 0] += 1
+        saveData()
+    }
+    
     func getKeyCount(for keyCode: UInt16) -> Int {
         return keyUsageCounts[keyCode] ?? 0
     }
     
+    func getShortcutCount(for shortcut: KeyboardShortcut) -> Int {
+        return shortcutUsageCounts[shortcut] ?? 0
+    }
+    
     func getMaxCount() -> Int {
         return keyUsageCounts.values.max() ?? 0
+    }
+    
+    func getMaxShortcutCount() -> Int {
+        return shortcutUsageCounts.values.max() ?? 0
     }
     
     func getTopKeys(count: Int) -> [(keyCode: UInt16, count: Int, label: String)] {
@@ -34,7 +79,18 @@ class KeyUsageTracker: ObservableObject {
         return topKeys.map { (keyCode: $0.key, count: $0.value, label: keyCodeToString($0.key)) }
     }
     
-    private func keyCodeToString(_ keyCode: UInt16) -> String {
+    func getTopShortcuts(count: Int) -> [(shortcut: KeyboardShortcut, count: Int, description: String)] {
+        // Get shortcuts sorted by usage (most used first)
+        let sortedShortcuts = shortcutUsageCounts.sorted { $0.value > $1.value }
+        
+        // Take the top N shortcuts
+        let topShortcuts = sortedShortcuts.prefix(count)
+        
+        // Map to return array with shortcut descriptions
+        return topShortcuts.map { (shortcut: $0.key, count: $0.value, description: $0.key.description()) }
+    }
+    
+    func keyCodeToString(_ keyCode: UInt16) -> String {
         // For AZERTY keyboard
         switch keyCode {
         case 0: return "Q"
@@ -105,15 +161,24 @@ class KeyUsageTracker: ObservableObject {
     }
     
     func saveData() {
-        if let encodedData = try? JSONEncoder().encode(keyUsageCounts) {
-            UserDefaults.standard.set(encodedData, forKey: userDefaultsKey)
+        if let encodedKeyData = try? JSONEncoder().encode(keyUsageCounts) {
+            UserDefaults.standard.set(encodedKeyData, forKey: userDefaultsKey)
+        }
+        
+        if let encodedShortcutData = try? JSONEncoder().encode(shortcutUsageCounts) {
+            UserDefaults.standard.set(encodedShortcutData, forKey: shortcutUserDefaultsKey)
         }
     }
     
     func loadData() {
-        if let savedData = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let decodedCounts = try? JSONDecoder().decode([UInt16: Int].self, from: savedData) {
-            keyUsageCounts = decodedCounts
+        if let savedKeyData = UserDefaults.standard.data(forKey: userDefaultsKey),
+           let decodedKeyCounts = try? JSONDecoder().decode([UInt16: Int].self, from: savedKeyData) {
+            keyUsageCounts = decodedKeyCounts
+        }
+        
+        if let savedShortcutData = UserDefaults.standard.data(forKey: shortcutUserDefaultsKey),
+           let decodedShortcutCounts = try? JSONDecoder().decode([KeyboardShortcut: Int].self, from: savedShortcutData) {
+            shortcutUsageCounts = decodedShortcutCounts
         }
     }
 }

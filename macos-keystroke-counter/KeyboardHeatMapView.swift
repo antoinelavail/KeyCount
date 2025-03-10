@@ -146,95 +146,100 @@ struct KeyboardHeatMapView: View {
             // Set minimum height for the scroll area
             .frame(minHeight: 300)
             
-            VStack(spacing: 12) {
-                Text("Keystroke Color Scale")
-                    .font(.headline)
-                    .padding(.top, 4)
-                
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(width: 20, height: 20)
-                                .cornerRadius(4)
-                            
-                            Text("Unused")
-                                .font(.caption)
-                        }
-                        
-                        HStack {
-                            Rectangle()
-                                .fill(Color(red: 0.68, green: 0.85, blue: 0.9))
-                                .frame(width: 20, height: 20)
-                                .cornerRadius(4)
-                            
-                            VStack(alignment: .leading) {
-                                Text("Light Usage")
-                                    .font(.caption)
-                                Text("1-\(Int(Double(maxCount) * 0.25)) keystrokes")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
+            if selectedHeatMapTab == 0 {
+                VStack(spacing: 12) {
+                    Text("Keystroke Color Scale")
+                        .font(.headline)
+                        .padding(.top, 4)
                     
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Rectangle()
-                                .fill(Color(red: 0.69, green: 0.9, blue: 0.69))
-                                .frame(width: 20, height: 20)
-                                .cornerRadius(4)
-                            
-                            VStack(alignment: .leading) {
-                                Text("Medium-Light Usage")
+                    HStack(alignment: .top, spacing: 16) {
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 20, height: 20)
+                                    .cornerRadius(4)
+                                
+                                Text("Unused")
                                     .font(.caption)
-                                Text("\(Int(Double(maxCount) * 0.25) + 1)-\(Int(Double(maxCount) * 0.5)) keystrokes")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
+                            }
+                            
+                            HStack {
+                                Rectangle()
+                                    .fill(Color(red: 0.68, green: 0.85, blue: 0.9))
+                                    .frame(width: 20, height: 20)
+                                    .cornerRadius(4)
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Light Usage")
+                                        .font(.caption)
+                                    Text("1-\(Int(Double(maxCount) * 0.25)) keystrokes")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                         
-                        HStack {
-                            Rectangle()
-                                .fill(Color(red: 0.95, green: 0.95, blue: 0.7))
-                                .frame(width: 20, height: 20)
-                                .cornerRadius(4)
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Rectangle()
+                                    .fill(Color(red: 0.69, green: 0.9, blue: 0.69))
+                                    .frame(width: 20, height: 20)
+                                    .cornerRadius(4)
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Medium-Light Usage")
+                                        .font(.caption)
+                                    Text("\(Int(Double(maxCount) * 0.25) + 1)-\(Int(Double(maxCount) * 0.5)) keystrokes")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                             
-                            VStack(alignment: .leading) {
-                                Text("Medium-Heavy Usage")
-                                    .font(.caption)
-                                Text("\(Int(Double(maxCount) * 0.5) + 1)-\(Int(Double(maxCount) * 0.75)) keystrokes")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
+                            HStack {
+                                Rectangle()
+                                    .fill(Color(red: 0.95, green: 0.95, blue: 0.7))
+                                    .frame(width: 20, height: 20)
+                                    .cornerRadius(4)
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Medium-Heavy Usage")
+                                        .font(.caption)
+                                    Text("\(Int(Double(maxCount) * 0.5) + 1)-\(Int(Double(maxCount) * 0.75)) keystrokes")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Rectangle()
+                                    .fill(Color(red: 0.95, green: 0.71, blue: 0.76))
+                                    .frame(width: 20, height: 20)
+                                    .cornerRadius(4)
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Heavy Usage")
+                                        .font(.caption)
+                                    Text("\(Int(Double(maxCount) * 0.75) + 1)-\(maxCount) keystrokes")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
-                    
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Rectangle()
-                                .fill(Color(red: 0.95, green: 0.71, blue: 0.76))
-                                .frame(width: 20, height: 20)
-                                .cornerRadius(4)
-                            
-                            VStack(alignment: .leading) {
-                                Text("Heavy Usage")
-                                    .font(.caption)
-                                Text("\(Int(Double(maxCount) * 0.75) + 1)-\(maxCount) keystrokes")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 4)
                 }
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
                 .padding(.horizontal)
-                .padding(.bottom, 4)
+                .padding(.top, 8)
+            } else {
+                // Shortcuts heat map
+                ShortcutHeatMapView()
             }
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-            .padding(.horizontal)
-            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity) // Allow view to use all available width
         .padding()

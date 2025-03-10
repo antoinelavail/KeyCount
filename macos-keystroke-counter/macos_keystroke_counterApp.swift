@@ -338,13 +338,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
 
     func handleEvent(_ event: CGEvent) {
-        keystrokeCount += 1
-        totalKeystrokes += 1
-        updateKeystrokesCount()
-
-        // Get the key code and record it in the tracker
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
-        KeyUsageTracker.shared.recordKeyPress(keyCode: keyCode)
+        let flags = event.flags
+        
+        // Check if this is a shortcut (has modifier keys)
+        let modifierFlags: UInt64 = [
+            CGEventFlags.maskCommand,
+            CGEventFlags.maskShift,
+            CGEventFlags.maskAlternate,
+            CGEventFlags.maskControl
+        ].reduce(0) { $0 | ($1.rawValue & flags.rawValue) }
+        
+        if modifierFlags != 0 {
+            // This is a shortcut, record it
+            KeyUsageTracker.shared.recordShortcut(keyCode: keyCode, modifiers: modifierFlags)
+        } else {
+            // This is a regular keystroke
+            keystrokeCount += 1
+            totalKeystrokes += 1
+            updateKeystrokesCount()
+
+            // Record the key press
+            KeyUsageTracker.shared.recordKeyPress(keyCode: keyCode)
+        }
 
         // Check if it's a new day
         if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
