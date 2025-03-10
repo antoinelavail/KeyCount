@@ -279,20 +279,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
+    private func formatKeystrokeCount(_ count: Int) -> String {
+        if count < 1000 {
+            return "\(count)"
+        } else if count < 1_000_000 {
+            let thousands = Double(count) / 1000.0
+            return String(format: "%.1fk", thousands)
+                .replacingOccurrences(of: ".0k", with: "k") // Remove decimal if it's .0
+        } else {
+            let millions = Double(count) / 1_000_000.0
+            return String(format: "%.1fM", millions)
+                .replacingOccurrences(of: ".0M", with: "M") // Remove decimal if it's .0
+        }
+    }
+    
     func updateKeystrokesCount() {
         if let button = statusItem.button {
-            let displayString = menu?.showNumbersOnly == true ? "\(keystrokeCount)" : "\(keystrokeCount) keystrokes"
+            let formattedCount = formatKeystrokeCount(keystrokeCount)
+            let displayString = menu?.showNumbersOnly == true ? formattedCount : "\(formattedCount) keystrokes"
             
             button.title = displayString
 
-            // Calculate the minimum width based on the number of digits
+            // Calculate the minimum width based on the formatted text
             var minWidth: CGFloat = 110.0
-            let digitCount = "\(keystrokeCount)".count
-
-            if digitCount >= 4 {
-                minWidth += CGFloat(digitCount - 4) * 10.0
-            }
-
+            
             if let font = button.font {
                 let offset = -(font.capHeight - font.xHeight) / 2 + 1.0
                 button.attributedTitle = NSAttributedString(
