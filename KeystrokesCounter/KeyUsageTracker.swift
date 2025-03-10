@@ -225,7 +225,7 @@ class KeyUsageTracker: ObservableObject {
         
         // Calculate counts for each key in the specified time range
         var timeRangeCounts: [UInt16: Int] = [:]
-        for (keyCode, timestamps) in keyUsageTimestamps {
+        for (keyCode, _) in keyUsageTimestamps {
             let countForRange = getKeyCountForTimeRange(for: keyCode, timeRange: timeRange)
             if countForRange > 0 {
                 timeRangeCounts[keyCode] = countForRange
@@ -256,7 +256,7 @@ class KeyUsageTracker: ObservableObject {
         
         // Calculate counts for each shortcut in the specified time range
         var timeRangeCounts: [KeyboardShortcut: Int] = [:]
-        for (shortcut, timestamps) in shortcutUsageTimestamps {
+        for (shortcut, _) in shortcutUsageTimestamps {
             let countForRange = getShortcutCountForTimeRange(for: shortcut, timeRange: timeRange)
             if countForRange > 0 {
                 timeRangeCounts[shortcut] = countForRange
