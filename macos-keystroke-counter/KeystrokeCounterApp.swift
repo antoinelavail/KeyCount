@@ -94,7 +94,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             if let font = button.font {
                 let offset = -(font.capHeight - font.xHeight) / 2 + 1.0
                 button.attributedTitle = NSAttributedString(
-                    string: "\(keystrokeCount) keystrokes",
+                    string: "\(keystrokeCount) ⌨️",
                     attributes: [NSAttributedString.Key.baselineOffset: offset]
                 )
             }
@@ -301,12 +301,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     func updateKeystrokesCount() {
         if let button = statusItem.button {
             let formattedCount = formatKeystrokeCount(keystrokeCount)
-            let displayString = menu?.showNumbersOnly == true ? formattedCount : "\(formattedCount) keystrokes"
+            let displayString = menu?.showNumbersOnly == true ? formattedCount : "\(formattedCount) ⌨️"
             
             button.title = displayString
 
             // Calculate the minimum width based on the formatted text
-            var minWidth: CGFloat = 110.0
+            let minWidth: CGFloat = 60.0
 
             if let font = button.font {
                 let offset = -(font.capHeight - font.xHeight) / 2 + 1.0
