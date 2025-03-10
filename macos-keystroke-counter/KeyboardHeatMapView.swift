@@ -159,7 +159,7 @@ struct KeyboardHeatMapView: View {
                             VStack(alignment: .leading) {
                                 Text("Light Usage")
                                     .font(.caption)
-                                Text("1-\(Int(maxCount * 0.25)) keystrokes")
+                                Text("1-\(Int(Double(maxCount) * 0.25)) keystrokes")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -176,7 +176,7 @@ struct KeyboardHeatMapView: View {
                             VStack(alignment: .leading) {
                                 Text("Medium-Light Usage")
                                     .font(.caption)
-                                Text("\(Int(maxCount * 0.25) + 1)-\(Int(maxCount * 0.5)) keystrokes")
+                                Text("\(Int(Double(maxCount) * 0.25) + 1)-\(Int(Double(maxCount) * 0.5)) keystrokes")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -191,7 +191,7 @@ struct KeyboardHeatMapView: View {
                             VStack(alignment: .leading) {
                                 Text("Medium-Heavy Usage")
                                     .font(.caption)
-                                Text("\(Int(maxCount * 0.5) + 1)-\(Int(maxCount * 0.75)) keystrokes")
+                                Text("\(Int(Double(maxCount) * 0.5) + 1)-\(Int(Double(maxCount) * 0.75)) keystrokes")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -208,7 +208,7 @@ struct KeyboardHeatMapView: View {
                             VStack(alignment: .leading) {
                                 Text("Heavy Usage")
                                     .font(.caption)
-                                Text("\(Int(maxCount * 0.75) + 1)-\(maxCount) keystrokes")
+                                Text("\(Int(Double(maxCount) * 0.75) + 1)-\(maxCount) keystrokes")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
