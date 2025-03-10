@@ -369,22 +369,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     func setupEventTap() {
+        // Create mask for key down events only
         let eventMask: CGEventMask = (1 << CGEventType.keyDown.rawValue)
-        let mask = CGEventMask(eventMask) | CGEventFlags.maskCommand.rawValue
-
+        
         let selfPointer = Unmanaged.passUnretained(self).toOpaque()
 
         eventTap = CGEvent.tapCreate(
             tap: .cgAnnotatedSessionEventTap,
             place: .tailAppendEventTap,
             options: .listenOnly,
-            eventsOfInterest: mask,
+            eventsOfInterest: eventMask,  // Use only the key down event mask
             callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
                 guard let refcon = refcon else {
                     return nil
                 }
-                let appDelegate = Unmanaged<AppDelegate>.fromOpaque(refcon).takeUnretainedValue()
-                appDelegate.handleEvent(event)
+                
+                // Only process if it's actually a keyDown event
+                if type == .keyDown {
+                    let appDelegate = Unmanaged<AppDelegate>.fromOpaque(refcon).takeUnretainedValue()
+                    appDelegate.handleEvent(event)
+                }
 
                 return Unmanaged.passRetained(event)
             },
