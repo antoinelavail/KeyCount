@@ -205,7 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             
             // Make corners rounded
             historyWindow?.contentView?.wantsLayer = true
-            historyWindow?.contentView?.layer?.cornerRadius = 10
+            historyWindow?.contentView?.layer?.cornerRadius = 12 // Increase from 10 to 12 for more visible rounding
             historyWindow?.contentView?.layer?.masksToBounds = true
         } else {
             // Update the view with current data
@@ -225,8 +225,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             // Animate both position and opacity
             historyWindow?.animator().setFrame(
                 NSRect(
-                    x: screenRect.maxX - windowWidth, // Final position (slid in from right)
-                    y: screenRect.maxY - windowHeight,
+                    x: screenRect.maxX - windowWidth - 20, // 20px more to the left 
+                    y: screenRect.maxY - windowHeight - 20, // 20px more down
                     width: windowWidth,
                     height: windowHeight
                 ),
@@ -278,7 +278,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             window.animator().setFrame(
                 NSRect(
                     x: screen.visibleFrame.maxX, // Move offscreen to the right
-                    y: window.frame.minY,
+                    y: window.frame.minY,  // Keep the vertical position the same when closing
                     width: window.frame.width,
                     height: window.frame.height
                 ),
