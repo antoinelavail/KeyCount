@@ -261,8 +261,8 @@ struct TopKeysView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Top 10 Most Used Keys")
-                .font(.headline)
-                .padding(.bottom, 4)
+                .font(.title2)
+                .padding(.horizontal)
             
             if topKeys.isEmpty {
                 Text("No key usage data available")

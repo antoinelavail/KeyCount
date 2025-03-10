@@ -184,7 +184,7 @@ struct TopShortcutsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Most Used Shortcuts")
                 .font(.title2)
-                .padding(.bottom, 4)
+                .padding(.horizontal)
             
             if topShortcuts.isEmpty {
                 Text("No shortcut usage data available")
