@@ -20,7 +20,7 @@ struct KeystrokeChartView: View {
     }
     
     var body: some View {
-        VStack {
+        VStack(spacing: 16) {
             // Today's count highlight section
             if highlightToday {
                 VStack(spacing: 5) {
@@ -34,14 +34,14 @@ struct KeystrokeChartView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(.ultraThinMaterial)
                 .cornerRadius(10)
                 .padding([.horizontal, .top])
             }
             
-            Text("Keystroke History")
+            Text("History")
                 .font(.title)
-                .padding(.top)
+                .padding(.top, 4)
             
             Picker("Time Period", selection: $selectedDays) {
                 Text("7 Days").tag(7)
@@ -49,7 +49,7 @@ struct KeystrokeChartView: View {
                 Text("30 Days").tag(30)
             }
             .pickerStyle(SegmentedPickerStyle())
-            .padding()
+            .padding(.horizontal)
             .onChange(of: selectedDays) { _ in
                 loadData()
             }
@@ -60,29 +60,26 @@ struct KeystrokeChartView: View {
                     .padding()
                 Spacer()
             } else {
-                Chart {
-                    ForEach(historyData, id: \.date) { item in
-                        BarMark(
-                            x: .value("Date", formatDate(item.date)),
-                            y: .value("Keystrokes", item.count)
-                        )
-                        .foregroundStyle(Color.blue.gradient)
-                    }
-                }
-                .frame(height: 250)
-                .padding()
-                
-                List {
-                    ForEach(historyData, id: \.date) { item in
-                        HStack {
-                            Text(formatDate(item.date))
-                            Spacer()
-                            Text("\(item.count) keystrokes")
-                                .foregroundColor(.secondary)
+                // Chart in a rounded blurred container
+                VStack {
+                    Chart {
+                        ForEach(historyData, id: \.date) { item in
+                            BarMark(
+                                x: .value("Date", formatDate(item.date)),
+                                y: .value("Keystrokes", item.count)
+                            )
+                            .foregroundStyle(Color.blue.gradient)
                         }
-                        .padding(.vertical, 4)
                     }
+                    .frame(height: 250)
+                    .padding()
                 }
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+                .padding(.horizontal)
+                
+                // Removed list of days
+                Spacer()
             }
             
             // Add Quit button
