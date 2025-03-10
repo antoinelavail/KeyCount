@@ -266,8 +266,3 @@ struct TopShortcutsView: View {
     }
 }
 
-struct KeystrokeChartView_Previews: PreviewProvider {
-    static var previews: some View {
-        KeystrokeChartView()
-    }
-}

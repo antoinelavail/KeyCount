@@ -46,23 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     private var eventMonitor: Any?
     static private(set) var instance: AppDelegate!
     lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    var updateInterval = Int(UserDefaults.standard.string(forKey: "updateInterval") ?? "30") ?? 30
-    
-    // Variables for maintaining keystroke data
-    var keystrokeData: [Int] = []
-    var currentTimeIndex: Int = 0
-    var endpointURL: String = ""
-    
-    // The number of keystrokes at the beginning of the interval, so that when we send the data we can add the keystrokes from the leystroke data on to this value incrementally
-    var keystrokesAtBeginningOfInterval: Int = 0
-    
-    // how precise the key detection logic is. keystrokeData data will be an array of Integers where each Int represents the number of keystrokes that took place in each period. If updatePrecision = 4, then it will be the number of keystrokes in each 250ms period (4 periods per second)
-    var updatePrecision: Int = 20
-    
     // keys for UserDefaults data
-    let sendingUpdatesEnabledKey = "sendingUpdatesEnabled"
-    let updateEndpointURIKey = "updateEndpointURI"
-    let updateIntervalKey = "updateInterval"
     
     var clearKeystrokesDaily: Bool {
         get {
@@ -90,10 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
     override init() {
         self.keystrokeCount = UserDefaults.standard.integer(forKey: "keystrokesToday")
-        self.keystrokesAtBeginningOfInterval = UserDefaults.standard.integer(forKey: "keystrokesToday")
         self.totalKeystrokes = UserDefaults.standard.integer(forKey: "totalKeystrokes")
-        self.endpointURL = UserDefaults.standard.string(forKey: updateEndpointURIKey) ?? ""
-        self.keystrokeData = Array(repeating: 0, count: updateInterval * updatePrecision)
         super.init()
         AppDelegate.instance = self
     }
@@ -148,10 +129,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Register for key events using event tap
         setupEventTap()
         
-        // If sending updates is enabled start timer to send update data after every interval
-        if UserDefaults.standard.bool(forKey: self.sendingUpdatesEnabledKey) {
-            setupTimeIndexIncrementer()
-        }
         
         // Check if we need to reset daily count
         if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
@@ -351,7 +328,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         
         if modifierFlags != 0 {
             // This is a shortcut, record it
-            print("Detected shortcut with modifiers: \(modifierFlags), keyCode: \(keyCode)")
             KeyUsageTracker.shared.recordShortcut(keyCode: keyCode, modifiers: modifierFlags)
         } else {
             // This is a regular keystroke
@@ -373,21 +349,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
-    func setupTimeIndexIncrementer() {
-        // Create a timer that calls the incrementTimeIndex method [updatePrecision] times per second
-        let timer = Timer.scheduledTimer(timeInterval: 1.0/Double(updatePrecision), target: self, selector: #selector(incrementTimeIndex), userInfo: nil, repeats: true)
-        
-        // Run the timer on the current run loop
-        RunLoop.current.add(timer, forMode: .common)
-    }
-    
-    @objc func incrementTimeIndex() {
-        // Increment currentTimeIndex
-        currentTimeIndex += 1
-        
-        // Uncommment print statement for timer increment debugging
-        // print("Timestamp: \(Date()) - Current Time Index: \(currentTimeIndex)")
-    }
     
     func setupEventTap() {
         // Create mask for key down events only
@@ -482,30 +443,10 @@ class ApplicationMenu: ObservableObject {
         AppDelegate.instance.showHistoryWindow()
     }
 
-    @objc func resetKeystrokes() {
-        let confirmResetAlert = NSAlert()
-        confirmResetAlert.messageText = "Reset Keystrokes"
-        confirmResetAlert.informativeText = "Are you sure you want to reset the keystrokes count?"
-        confirmResetAlert.addButton(withTitle: "Reset")
-        confirmResetAlert.addButton(withTitle: "Cancel")
-        confirmResetAlert.alertStyle = .warning
-
-        let response = confirmResetAlert.runModal()
-
-        if response == .alertFirstButtonReturn {
-            appDelegate.keystrokeCount = 0
-            appDelegate.updateKeystrokesCount()
-        }
-    }
-
     @objc func goToWebsite() {
         if let url = URL(string: "https://github.com/MarcusDelvecchio/macos-keystroke-counter") {
             NSWorkspace.shared.open(url)
         }
-    }
-
-    @objc func toggleShowNumbersOnly() {
-        showNumbersOnly.toggle()
     }
 
     @objc func terminateApp() {
@@ -521,11 +462,3 @@ class ApplicationMenu: ObservableObject {
 }
 
 
-struct KeystrokeDataObject: Codable {
-    let timestamp: String
-    let intervalData: [Int]
-    let keystrokeCountBefore: Int
-    let keystrokeCountAfter: Int
-    let intervalLength: Int
-    let updatePrecision: Int
-}

@@ -71,8 +71,6 @@ class KeyUsageTracker: ObservableObject {
             let shortcut = KeyboardShortcut(keyCode: keyCode, modifiers: relevantModifiers)
             shortcutUsageCounts[shortcut, default: 0] += 1
             
-            // Debug print to see if shortcut is being recorded
-            print("Recorded shortcut: \(shortcut.description()) - Count: \(shortcutUsageCounts[shortcut, default: 0])")
             
             saveData()
         }
