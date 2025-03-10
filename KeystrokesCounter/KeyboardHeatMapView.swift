@@ -120,6 +120,12 @@ struct KeyboardHeatMapView: View {
                                 )
                             }
                         }
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)
+                        ))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.1).delay(Double(index) * 0.03), value: selectedTimeRange)
+                        .id("\(selectedTimeRange)-\(index)") // Important for SwiftUI to detect changes
                     }
                 }
                 .padding(8)
@@ -331,7 +337,9 @@ struct TopKeysView: View {
     }
     
     private func loadTopKeys() {
-        topKeys = keyTracker.getTopKeysForTimeRange(count: 10, timeRange: selectedTimeRange)
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            topKeys = keyTracker.getTopKeysForTimeRange(count: 10, timeRange: selectedTimeRange)
+        }
     }
     
     private func getTotalKeystrokes() -> Int? {

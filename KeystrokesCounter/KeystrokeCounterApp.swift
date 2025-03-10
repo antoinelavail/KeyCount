@@ -154,10 +154,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         
         // If history window already exists, just show it
         if historyWindow == nil {
-            // Create a borderless window
+            // Create a borderless window with initial alpha of 0
             historyWindow = NSWindow(
                 contentRect: NSRect(
-                    x: screenRect.maxX, // Start offscreen
+                    x: screenRect.maxX - windowWidth, // Position it just offscreen
                     y: screenRect.maxY - windowHeight,
                     width: windowWidth,
                     height: windowHeight
@@ -167,15 +167,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 defer: false
             )
             
-            historyWindow?.backgroundColor = NSColor.windowBackgroundColor
+            historyWindow?.backgroundColor = NSColor.clear // Start transparent
+            historyWindow?.alphaValue = 0.0 // Start fully transparent
             historyWindow?.isOpaque = false
             historyWindow?.hasShadow = true
             historyWindow?.level = .statusBar
             historyWindow?.delegate = self
             
-            // Configure the view with today's count highlighted
+            // Configure the view with fade-in transition
             let hostingController = NSHostingController(
                 rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .topTrailing)),
+                        removal: .opacity.combined(with: .scale(scale: 0.95, anchor: .topTrailing))
+                    ))
+                    .animation(.easeInOut(duration: 0.3), value: true)
             )
             let hostingView = hostingController.view
             hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
@@ -204,10 +210,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         historyWindow?.orderFront(nil)
         historyWindow?.makeKey()
         
-        // Animate the window sliding in
+        // Combined fade + slide animation
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.3
+            context.allowsImplicitAnimation = true
+            context.duration = 0.35
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            
+            // Animate both position and opacity
             historyWindow?.animator().setFrame(
                 NSRect(
                     x: screenRect.maxX - windowWidth,
@@ -217,6 +226,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 ),
                 display: true
             )
+            historyWindow?.animator().alphaValue = 1.0
         })
         
         // Set up event monitoring to close the window when focus is lost
@@ -246,10 +256,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             eventMonitor = nil
         }
         
-        // Animate the window sliding out
+        // Combined slide-out and fade-out animation
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.2
+            context.allowsImplicitAnimation = true
+            context.duration = 0.25
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            
+            // Animate both position and opacity
             window.animator().setFrame(
                 NSRect(
                     x: screen.visibleFrame.maxX,
@@ -259,6 +272,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 ),
                 display: true
             )
+            window.animator().alphaValue = 0.0
         }, completionHandler: {
             self.historyWindow?.orderOut(nil)
             self.historyWindow = nil

@@ -66,6 +66,9 @@ struct ShortcutHeatMapView: View {
                                         .font(.body)
                                         .foregroundColor(.secondary)
                                 }
+                                .transition(.slide.combined(with: .opacity))
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7).delay(Double(index) * 0.03), value: selectedTimeRange)
+                                .id("\(selectedTimeRange)-\(index)") // Important for transitions
                             }
                         }
                     }

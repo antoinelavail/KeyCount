@@ -236,6 +236,12 @@ struct TopShortcutsView: View {
                                     .foregroundColor(.secondary)
                             }
                         }
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0.1).delay(Double(index) * 0.03), value: selectedTimeRange)
+                        .id("\(selectedTimeRange)-\(index)") // Important for SwiftUI to detect changes
                     }
                 }
                 .padding(8)
@@ -253,8 +259,10 @@ struct TopShortcutsView: View {
     }
     
     private func loadShortcutData() {
-        topShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 10, timeRange: selectedTimeRange)
-        maxCount = topShortcuts.first?.count ?? 0
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            topShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 10, timeRange: selectedTimeRange)
+            maxCount = topShortcuts.first?.count ?? 0
+        }
     }
     
     private func getTotalShortcuts() -> Int? {
