@@ -115,11 +115,26 @@ struct ShortcutHeatMapView: View {
         .onAppear {
             loadShortcutData()
         }
+        // Add this timer to refresh data every 3 seconds
+        .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+            loadShortcutData()
+        }
     }
     
     private func loadShortcutData() {
-        topShortcuts = keyTracker.getTopShortcuts(count: 30)
-        maxCount = topShortcuts.first?.count ?? 0
+        // Get the data from the tracker
+        let newShortcuts = keyTracker.getTopShortcuts(count: 30)
+        
+        // Force a UI refresh by making a change to the state
+        // even if the data is the same
+        maxCount = 0
+        topShortcuts = []
+        
+        // Then update with the real data after a brief delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.topShortcuts = newShortcuts
+            self.maxCount = newShortcuts.first?.count ?? 0
+        }
     }
     
     private func getTotalShortcuts() -> Int? {

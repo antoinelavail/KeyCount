@@ -6,21 +6,31 @@ struct KeyboardShortcut: Hashable, Codable {
     let keyCode: UInt16
     let modifiers: UInt64  // Using UInt64 to match CGEventFlags
     
+    // Add explicit Hashable implementation
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(keyCode)
+        hasher.combine(modifiers)
+    }
+    
+    static func == (lhs: KeyboardShortcut, rhs: KeyboardShortcut) -> Bool {
+        return lhs.keyCode == rhs.keyCode && lhs.modifiers == rhs.modifiers
+    }
+    
     func description() -> String {
         var parts: [String] = []
         
-        // Add modifier symbols
-        if modifiers & CGEventFlags.maskCommand.rawValue != 0 {
-            parts.append("⌘")
-        }
-        if modifiers & CGEventFlags.maskShift.rawValue != 0 {
-            parts.append("⇧")
+        // Add modifier symbols in a consistent order
+        if modifiers & CGEventFlags.maskControl.rawValue != 0 {
+            parts.append("⌃")
         }
         if modifiers & CGEventFlags.maskAlternate.rawValue != 0 {
             parts.append("⌥")
         }
-        if modifiers & CGEventFlags.maskControl.rawValue != 0 {
-            parts.append("⌃")
+        if modifiers & CGEventFlags.maskShift.rawValue != 0 {
+            parts.append("⇧")
+        }
+        if modifiers & CGEventFlags.maskCommand.rawValue != 0 {
+            parts.append("⌘")
         }
         
         // Add the key
@@ -48,9 +58,24 @@ class KeyUsageTracker: ObservableObject {
     }
     
     func recordShortcut(keyCode: UInt16, modifiers: UInt64) {
-        let shortcut = KeyboardShortcut(keyCode: keyCode, modifiers: modifiers)
-        shortcutUsageCounts[shortcut, default: 0] += 1
-        saveData()
+        // Filter to include only the relevant modifier flags
+        let relevantModifiers = modifiers & (
+            CGEventFlags.maskCommand.rawValue |
+            CGEventFlags.maskShift.rawValue |
+            CGEventFlags.maskAlternate.rawValue |
+            CGEventFlags.maskControl.rawValue
+        )
+        
+        // Only record if we actually have modifiers
+        if relevantModifiers != 0 {
+            let shortcut = KeyboardShortcut(keyCode: keyCode, modifiers: relevantModifiers)
+            shortcutUsageCounts[shortcut, default: 0] += 1
+            
+            // Debug print to see if shortcut is being recorded
+            print("Recorded shortcut: \(shortcut.description()) - Count: \(shortcutUsageCounts[shortcut, default: 0])")
+            
+            saveData()
+        }
     }
     
     func getKeyCount(for keyCode: UInt16) -> Int {

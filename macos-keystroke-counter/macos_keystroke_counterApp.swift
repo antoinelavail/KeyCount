@@ -351,6 +351,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         
         if modifierFlags != 0 {
             // This is a shortcut, record it
+            print("Detected shortcut with modifiers: \(modifierFlags), keyCode: \(keyCode)")
             KeyUsageTracker.shared.recordShortcut(keyCode: keyCode, modifiers: modifierFlags)
         } else {
             // This is a regular keystroke
