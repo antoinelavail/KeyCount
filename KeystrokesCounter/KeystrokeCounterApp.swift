@@ -182,6 +182,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             historyWindow?.hasShadow = true
             historyWindow?.level = .statusBar
             historyWindow?.delegate = self
+            historyWindow?.titlebarAppearsTransparent = true
+            historyWindow?.appearance = NSAppearance(named: .vibrantDark)
             
             // Configure the view with a notification publisher for animation timing
             let animationManager = WindowAnimationManager()
@@ -198,6 +200,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             visualEffectView.blendingMode = .behindWindow
             visualEffectView.state = .active
             visualEffectView.autoresizingMask = [.width, .height]
+            
+            // Apply corner radius to the visual effect view itself
+            visualEffectView.wantsLayer = true
+            visualEffectView.layer?.cornerRadius = 12
+            visualEffectView.layer?.masksToBounds = true
+            
+            // Make sure the hostingView doesn't overflow the corners
+            hostingView.wantsLayer = true
+            hostingView.layer?.cornerRadius = 12
+            hostingView.layer?.masksToBounds = true
 
             // Add views in the correct order
             historyWindow?.contentView = visualEffectView
@@ -206,7 +218,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             // Make corners rounded
             historyWindow?.contentView?.wantsLayer = true
             historyWindow?.contentView?.layer?.cornerRadius = 12 // Increase from 10 to 12 for more visible rounding
-            historyWindow?.contentView?.layer?.masksToBounds = true
+            historyWindow?.contentView?.layer?.masksToBounds = false
+            historyWindow?.contentView?.layer?.shadowOpacity = 0.3
+            historyWindow?.contentView?.layer?.shadowRadius = 8
+            historyWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
         } else {
             // Update the view with current data
             updateHistoryView()
