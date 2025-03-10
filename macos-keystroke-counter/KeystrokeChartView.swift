@@ -21,6 +21,9 @@ struct KeystrokeChartView: View {
     
     var body: some View {
         VStack(spacing: 16) {
+            // Add top padding to prevent cut-off
+            Spacer().frame(height: 12)
+            
             // Today's count highlight section
             if highlightToday {
                 VStack(spacing: 5) {
@@ -78,6 +81,9 @@ struct KeystrokeChartView: View {
                 .padding(.horizontal)
             }
             
+            // Add spacer to push content up
+            Spacer(minLength: 12)
+            
             // Improved Quit button styling
             Button(action: {
                 NSApp.terminate(nil)
@@ -93,10 +99,10 @@ struct KeystrokeChartView: View {
             .cornerRadius(8)
             .padding(.horizontal, 16)
             .padding(.top, 8)
-            .padding(.bottom, 16)
+            .padding(.bottom, 24) // Increased bottom padding
         }
         .frame(width: 360)
-        .fixedSize(horizontal: false, vertical: true)
+        .padding(.vertical, 8) // Add padding to the entire VStack
         .onAppear {
             loadData()
         }
