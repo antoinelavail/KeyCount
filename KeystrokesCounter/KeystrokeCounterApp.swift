@@ -14,8 +14,8 @@ struct KeystrokeTrackerApp: App {
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandGroup(after: .newItem) {
-                Button("Keystroke History") {
-                    NSApp.sendAction(#selector(AppDelegate.showHistoryWindow), to: nil, from: nil)
+                Button("Keystroke Stats") {
+                    NSApp.sendAction(#selector(AppDelegate.showStatsWindow), to: nil, from: nil)
                 }
             }
         }
@@ -42,8 +42,7 @@ struct VisualEffectView: NSViewRepresentable {
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
     var activity: NSObjectProtocol?
-    var mainWindow: NSWindow!
-    var historyWindow: NSWindow?
+    var statsWindow: NSWindow?
     private var eventMonitor: Any?
     static private(set) var instance: AppDelegate!
     lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -105,17 +104,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             button.action = #selector(statusItemClicked)
         }
 
-        // Create the main window but don't show it
-        mainWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 700),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: true
-        )
-        mainWindow.title = "Keystroke Counter"
-        
         // Initialize ApplicationMenu only once
-        menu = ApplicationMenu(mainWindow: mainWindow, appDelegate: self)
+        menu = ApplicationMenu(appDelegate: self)
 
         // Don't set the menu to allow direct click handling
         statusItem.button?.action = #selector(statusItemClicked)
@@ -135,8 +125,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
-    func updateHistoryView() {
-        if let window = historyWindow,
+    func updateStatsView() {
+        if let window = statsWindow,
            let hostingView = window.contentView?.subviews.first as? NSHostingView<KeystrokeChartView> {
             // Create a new animation manager for the updated view
             let animationManager = WindowAnimationManager()
@@ -152,7 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
     
-    @objc func showHistoryWindow() {
+    @objc func showStatsWindow() {
         // Get main screen dimensions
         guard let screen = NSScreen.main else { return }
         let screenRect = screen.visibleFrame
@@ -161,10 +151,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let windowWidth: CGFloat = 420
         let windowHeight: CGFloat = 700
         
-        // If history window already exists, just show it
-        if historyWindow == nil {
+        // If statistics window already exists, just show it
+        if statsWindow == nil {
             // Create a borderless window positioned offscreen to the RIGHT
-            historyWindow = NSWindow(
+            statsWindow = NSWindow(
                 contentRect: NSRect(
                     x: screenRect.maxX - 20, // Position it offscreen to the right
                     y: screenRect.maxY - windowHeight - 20,
@@ -176,14 +166,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 defer: false
             )
             
-            historyWindow?.backgroundColor = NSColor.clear
-            historyWindow?.alphaValue = 0.0
-            historyWindow?.isOpaque = false
-            historyWindow?.hasShadow = true
-            historyWindow?.level = .statusBar
-            historyWindow?.delegate = self
-            historyWindow?.titlebarAppearsTransparent = true
-            historyWindow?.appearance = NSAppearance(named: .vibrantDark)
+            statsWindow?.backgroundColor = NSColor.clear
+            statsWindow?.alphaValue = 0.0
+            statsWindow?.isOpaque = false
+            statsWindow?.hasShadow = true
+            statsWindow?.level = .statusBar
+            statsWindow?.delegate = self
+            statsWindow?.titlebarAppearsTransparent = true
+            statsWindow?.appearance = NSAppearance(named: .vibrantDark)
             
             // Configure the view with a notification publisher for animation timing
             let animationManager = WindowAnimationManager()
@@ -212,24 +202,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             hostingView.layer?.masksToBounds = true
 
             // Add views in the correct order
-            historyWindow?.contentView = visualEffectView
+            statsWindow?.contentView = visualEffectView
             visualEffectView.addSubview(hostingView)
             
             // Make corners rounded
-            historyWindow?.contentView?.wantsLayer = true
-            historyWindow?.contentView?.layer?.cornerRadius = 12 // Increase from 10 to 12 for more visible rounding
-            historyWindow?.contentView?.layer?.masksToBounds = false
-            historyWindow?.contentView?.layer?.shadowOpacity = 0.3
-            historyWindow?.contentView?.layer?.shadowRadius = 8
-            historyWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
+            statsWindow?.contentView?.wantsLayer = true
+            statsWindow?.contentView?.layer?.cornerRadius = 12 // Increase from 10 to 12 for more visible rounding
+            statsWindow?.contentView?.layer?.masksToBounds = false
+            statsWindow?.contentView?.layer?.shadowOpacity = 0.3
+            statsWindow?.contentView?.layer?.shadowRadius = 8
+            statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
         } else {
             // Update the view with current data
-            updateHistoryView()
+            updateStatsView()
         }
         
         // Show the window and bring it to the front
-        historyWindow?.orderFront(nil)
-        historyWindow?.makeKey()
+        statsWindow?.orderFront(nil)
+        statsWindow?.makeKey()
         
         // Combined fade + RIGHT-TO-LEFT slide animation
         NSAnimationContext.runAnimationGroup({ context in
@@ -238,7 +228,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             
             // Animate both position and opacity
-            historyWindow?.animator().setFrame(
+            statsWindow?.animator().setFrame(
                 NSRect(
                     x: screenRect.maxX - windowWidth - 20,
                     y: screenRect.maxY - windowHeight - 20,
@@ -247,7 +237,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 ),
                 display: true
             )
-            historyWindow?.animator().alphaValue = 1.0
+            statsWindow?.animator().alphaValue = 1.0
             
             // Trigger internal animations at 50% of the transition
             DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.5) {
@@ -262,7 +252,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     
     func setupEventMonitoring() {
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-            guard let self = self, let window = self.historyWindow else { return }
+            guard let self = self, let window = self.statsWindow else { return }
             
             // Check if the click was outside the window
             if let clickedWindow = event.window, clickedWindow == window {
@@ -270,12 +260,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             }
             
             // Close the window
-            self.closeHistoryWindow()
+            self.closeStatsWindow()
         }
     }
     
-    func closeHistoryWindow() {
-        guard let window = historyWindow, let screen = NSScreen.main else { return }
+    func closeStatsWindow() {
+        guard let window = statsWindow, let screen = NSScreen.main else { return }
         
         // Remove event monitor
         if let monitor = eventMonitor {
@@ -301,20 +291,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             )
             window.animator().alphaValue = 0.0
         }, completionHandler: {
-            self.historyWindow?.orderOut(nil)
-            self.historyWindow = nil
+            self.statsWindow?.orderOut(nil)
+            self.statsWindow = nil
         })
     }
     
     // Window delegate method to handle window closing
     func windowWillClose(_ notification: Notification) {
-        if let window = notification.object as? NSWindow, window == historyWindow {
+        if let window = notification.object as? NSWindow, window == statsWindow {
             // Remove event monitor
             if let monitor = eventMonitor {
                 NSEvent.removeMonitor(monitor)
                 eventMonitor = nil
             }
-            historyWindow = nil
+            statsWindow = nil
         }
     }
     
@@ -440,12 +430,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
 
     @objc func statusItemClicked() {
-        // If history window exists and is visible, close it
-        if let window = historyWindow, window.isVisible {
-            closeHistoryWindow()
+        // If statistics window exists and is visible, close it
+        if let window = statsWindow, window.isVisible {
+            closeStatsWindow()
         } else {
             // Otherwise, show it
-            showHistoryWindow()
+            showStatsWindow()
         }
     }
     
@@ -465,7 +455,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 class ApplicationMenu: ObservableObject {
     var appDelegate: AppDelegate
     var menu: NSMenu!
-    var mainWindow: NSWindow?
     var settingsWindow: NSWindow?
     @Published var showNumbersOnly: Bool = false {
         didSet {
@@ -479,8 +468,7 @@ class ApplicationMenu: ObservableObject {
         }
     }
 
-    init(mainWindow: NSWindow?, appDelegate: AppDelegate) {
-        self.mainWindow = mainWindow
+    init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
         self.showNumbersOnly = UserDefaults.standard.bool(forKey: "ShowNumbersOnly")
         
@@ -491,7 +479,7 @@ class ApplicationMenu: ObservableObject {
     @objc func toggleMenu() {
         // Get a direct reference to the app delegate
         if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
-            appDelegate.showHistoryWindow()
+            appDelegate.showStatsWindow()
         }
     }
     
