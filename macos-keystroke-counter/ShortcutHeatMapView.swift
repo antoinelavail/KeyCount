@@ -116,9 +116,6 @@ struct ShortcutHeatMapView: View {
             loadShortcutData()
         }
         // Add this timer to refresh data every 3 seconds
-        .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
-            loadShortcutData()
-        }
     }
     
     private func loadShortcutData() {

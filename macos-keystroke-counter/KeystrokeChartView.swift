@@ -4,7 +4,6 @@ import Charts
 struct KeystrokeChartView: View {
     @State private var historyData: [(date: String, count: Int)] = []
     @State private var selectedDays: Int = 7
-    @State private var selectedTab = 0
     var highlightToday: Bool = false {
         didSet {
             if oldValue != highlightToday {
@@ -21,101 +20,92 @@ struct KeystrokeChartView: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Add top padding to prevent cut-off
-            Spacer().frame(height: 12)
-            
-            // Today's count highlight section
-            if highlightToday {
-                VStack(spacing: 5) {
-                    Text("Today's Keystrokes")
-                        .font(.title)
+        ScrollView {
+            VStack(spacing: 20) {
+                // 1. Today's keystrokes section
+                TodayKeystrokesView(todayCount: todayCount)
+                
+                // 2. Most used keys section
+                TopKeysView()
+                    .padding(.horizontal)
+                
+                // 3. Most used shortcuts section
+                TopShortcutsView()
+                    .padding(.horizontal)
+                
+                // 4. Keys heatmap (combined keys and shortcuts)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Keyboard Heat Map")
+                        .font(.title2)
+                        .padding(.horizontal)
                     
-                    Text("\(todayCount)")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .cornerRadius(10)
-                .padding([.horizontal, .top])
-            }
-            
-            Picker("", selection: $selectedTab) {
-                Text("History").tag(0)
-                Text("Heat Map").tag(1)
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
-            
-            if selectedTab == 0 {
-                Text("History")
-                    .font(.title)
-                    .padding(.top, 4)
-                
-                Picker("Time Period", selection: $selectedDays) {
-                    Text("7 Days").tag(7)
-                    Text("14 Days").tag(14)
-                    Text("30 Days").tag(30)
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                .onChange(of: selectedDays) { _ in
-                    loadData()
+                    KeyboardHeatMapView()
+                        .padding(.horizontal)
                 }
                 
-                if historyData.isEmpty {
-                    Text("No history data available")
-                        .foregroundColor(.secondary)
-                        .padding()
-                } else {
-                    // Chart in a rounded blurred container
-                    VStack {
-                        Chart {
-                            ForEach(historyData, id: \.date) { item in
-                                BarMark(
-                                    x: .value("Date", formatDate(item.date)),
-                                    y: .value("Keystrokes", item.count)
-                                )
-                                .foregroundStyle(Color.blue.gradient)
-                            }
-                        }
-                        .frame(height: 250)
-                        .padding()
+                // 5. History chart
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("History")
+                        .font(.title2)
+                        .padding(.horizontal)
+                    
+                    Picker("Time Period", selection: $selectedDays) {
+                        Text("7 Days").tag(7)
+                        Text("14 Days").tag(14)
+                        Text("30 Days").tag(30)
                     }
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(10)
+                    .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
+                    .onChange(of: selectedDays) { _ in
+                        loadData()
+                    }
+                    
+                    if historyData.isEmpty {
+                        Text("No history data available")
+                            .foregroundColor(.secondary)
+                            .padding()
+                    } else {
+                        // Chart in a rounded blurred container
+                        VStack {
+                            Chart {
+                                ForEach(historyData, id: \.date) { item in
+                                    BarMark(
+                                        x: .value("Date", formatDate(item.date)),
+                                        y: .value("Keystrokes", item.count)
+                                    )
+                                    .foregroundStyle(Color.blue.gradient)
+                                }
+                            }
+                            .frame(height: 250)
+                            .padding()
+                        }
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
                 }
-            } else {
-                // Heat Map tab
-                KeyboardHeatMapView()
-                    .padding(.horizontal)
+                
+                // Quit Button
+                Button(action: {
+                    NSApp.terminate(nil)
+                }) {
+                    Text("Quit")
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .background(Color.red.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(8)
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 24)
             }
-            
-            // Add spacer to push content up
-            Spacer(minLength: 12)
-            
-            // Improved Quit button styling
-            Button(action: {
-                NSApp.terminate(nil)
-            }) {
-                Text("Quit")
-                    .fontWeight(.medium)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-            }
-            .buttonStyle(BorderlessButtonStyle())
-            .background(Color.red.opacity(0.8))
-            .foregroundColor(.white)
-            .cornerRadius(8)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 24) // Increased bottom padding
+            .padding(.top, 16)
+            .padding(.bottom, 16)
         }
-        .frame(minWidth: 360, idealWidth: 700, maxWidth: .infinity)
-        .padding(.top, 8)
-        .padding(.bottom, 16) // Increased bottom padding
+        .frame(minWidth: 600, maxWidth: .infinity)
         .onAppear {
             loadData()
         }
@@ -160,6 +150,119 @@ struct KeystrokeChartView: View {
             return outputFormatter.string(from: date)
         }
         return dateString
+    }
+}
+
+// Today's Keystrokes View
+struct TodayKeystrokesView: View {
+    var todayCount: Int
+    
+    var body: some View {
+        VStack(spacing: 5) {
+            Text("Today's Keystrokes")
+                .font(.title)
+            
+            Text("\(todayCount)")
+                .font(.system(size: 48, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
+        .padding(.horizontal)
+    }
+}
+
+// Top Shortcuts View (extracted from ShortcutHeatMapView)
+struct TopShortcutsView: View {
+    @ObservedObject private var keyTracker = KeyUsageTracker.shared
+    @State private var topShortcuts: [(shortcut: KeyboardShortcut, count: Int, description: String)] = []
+    @State private var maxCount: Int = 0
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Most Used Shortcuts")
+                .font(.title2)
+                .padding(.bottom, 4)
+            
+            if topShortcuts.isEmpty {
+                Text("No shortcut usage data available")
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 6) {
+                    ForEach(0..<min(10, topShortcuts.count), id: \.self) { index in
+                        HStack {
+                            Text("\(index + 1).")
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.secondary)
+                                .frame(width: 30, alignment: .trailing)
+                            
+                            Text(topShortcuts[index].description)
+                                .font(.system(.body, design: .monospaced))
+                                .fontWeight(.medium)
+                                .frame(minWidth: 100, alignment: .leading)
+                                .padding(.horizontal, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(shortcutColor(for: index))
+                                )
+                            
+                            Text("\(topShortcuts[index].count) times")
+                                .font(.body)
+                            
+                            Spacer()
+                            
+                            // Percentage of total
+                            if let totalShortcuts = getTotalShortcuts() {
+                                let percentage = Double(topShortcuts[index].count) / Double(totalShortcuts) * 100
+                                Text(String(format: "%.1f%%", percentage))
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(8)
+                .background(.ultraThinMaterial)
+                .cornerRadius(8)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(8)
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
+        .onAppear {
+            loadShortcutData()
+        }
+    }
+    
+    private func loadShortcutData() {
+        topShortcuts = keyTracker.getTopShortcuts(count: 10)
+        maxCount = topShortcuts.first?.count ?? 0
+    }
+    
+    private func getTotalShortcuts() -> Int? {
+        let total = topShortcuts.reduce(0) { $0 + $1.count }
+        return total > 0 ? total : nil
+    }
+    
+    private func shortcutColor(for index: Int) -> Color {
+        let colors: [Color] = [
+            Color(red: 0.95, green: 0.71, blue: 0.76),  // 1st - Pastel pink/red
+            Color(red: 0.95, green: 0.78, blue: 0.66),  // 2nd - Pastel orange
+            Color(red: 0.95, green: 0.95, blue: 0.7),   // 3rd - Pastel yellow
+            Color(red: 0.69, green: 0.9, blue: 0.69),   // 4th - Pastel green
+            Color(red: 0.68, green: 0.85, blue: 0.9),   // 5th - Pastel blue
+            Color(red: 0.8, green: 0.7, blue: 0.9),     // 6th - Pastel purple
+            Color(red: 0.9, green: 0.7, blue: 0.85),    // 7th - Pastel magenta
+            Color(red: 0.75, green: 0.88, blue: 0.8),   // 8th - Pastel teal
+            Color(red: 0.85, green: 0.8, blue: 0.75),   // 9th - Pastel brown
+            Color(red: 0.8, green: 0.8, blue: 0.8)      // 10th - Pastel gray
+        ]
+        
+        return index < colors.count ? colors[index] : Color.gray.opacity(0.3)
     }
 }
 
