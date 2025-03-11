@@ -156,16 +156,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
                 .environmentObject(animationManager)
         )
-        let hostingView = hostingController.view
-        hostingView.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
         
-        // Make sure the hostingView doesn't overflow the corners
-        hostingView.wantsLayer = true
-        hostingView.layer?.cornerRadius = 12
-        hostingView.layer?.masksToBounds = true
-
-        // Add views in the correct order
-        statsWindow?.contentView = hostingView
+        // Set the hosting controller as the window's content view controller
+        statsWindow?.contentViewController = hostingController
+        
+        // Apply styling to the content view
+        statsWindow?.contentView?.wantsLayer = true
+        statsWindow?.contentView?.layer?.cornerRadius = 12
+        statsWindow?.contentView?.layer?.masksToBounds = true
         
         // Make corners rounded
         statsWindow?.contentView?.wantsLayer = true
@@ -177,17 +175,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     }
     
     func updateStatsView() {
-        if let window = statsWindow,
-           let hostingView = window.contentView?.subviews.first as? NSHostingView<KeystrokeChartView> {
-            // Create a new animation manager for the updated view
+        if let window = statsWindow {
+            // Create a new animation manager to trigger fresh animations
             let animationManager = WindowAnimationManager()
             
-            // Update the view with the new manager
-            hostingView.rootView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                .environmentObject(animationManager) as! KeystrokeChartView
+            if let hostingController = window.contentViewController as? NSHostingController<KeystrokeChartView> {
+                // Update the existing view's properties
+                hostingController.rootView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                    .environmentObject(animationManager)
+            } else {
+                // Create a new controller only if needed (first time)
+                let hostingController = NSHostingController(
+                    rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                        .environmentObject(animationManager)
+                )
+                window.contentViewController = hostingController
+            }
             
-            // Trigger the animations after a brief delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            // Trigger animations with a slight delay to ensure data is loaded
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
             }
         }
@@ -206,29 +212,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         StatsDataStore.shared.forceRefresh { [weak self] in
             guard let self = self else { return }
             
-            // Create a completely fresh view with updated data
-            let animationManager = WindowAnimationManager()
-            let hostingController = NSHostingController(
-                rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                    .environmentObject(animationManager)
-            )
-            
-            // Size the view to match the window dimensions
-            hostingController.view.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
-            hostingController.view.wantsLayer = true
-            hostingController.view.layer?.cornerRadius = 12
-            hostingController.view.layer?.masksToBounds = true
-            
-            // Replace the existing content view with the new one
-            self.statsWindow?.contentView = hostingController.view
-            
-            // Apply styling to the content view
-            self.statsWindow?.contentView?.wantsLayer = true
-            self.statsWindow?.contentView?.layer?.cornerRadius = 12
-            self.statsWindow?.contentView?.layer?.masksToBounds = false
-            self.statsWindow?.contentView?.layer?.shadowOpacity = 0.3
-            self.statsWindow?.contentView?.layer?.shadowRadius = 8
-            self.statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
+            // Update the existing content view instead of replacing it
+            self.updateStatsView()
             
             // Show the window and bring it to the front
             self.statsWindow?.orderFront(nil)
@@ -251,12 +236,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                     display: true
                 )
                 self.statsWindow?.animator().alphaValue = 1.0
-                
-                // Trigger internal animations at 50% of the transition
-                DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.5) {
-                    // Post a notification to trigger content animations
-                    NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
-                }
             })
             
             // Set up event monitoring to close the window when focus is lost
