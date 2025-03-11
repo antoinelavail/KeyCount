@@ -128,15 +128,18 @@ struct KeystrokeChartView: View {
             dateFormatter.dateFormat = "yyyy-MM-dd"
             let today = dateFormatter.string(from: Date())
             
+            // Get the current count directly from AppDelegate
+            let currentCount = AppDelegate.instance.keystrokeCount
+            
             // Check if today is already in the data
             let containsToday = data.contains(where: { $0.date == today })
             
             // If not, or if we need to update it, add/update today's count
             if !containsToday {
-                data.append((date: today, count: todayCount))
+                data.append((date: today, count: currentCount))
             } else if let index = data.firstIndex(where: { $0.date == today }) {
                 // Update today's count in the existing data
-                data[index] = (date: today, count: todayCount)
+                data[index] = (date: today, count: currentCount)
             }
             
             // Sort data by date

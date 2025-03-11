@@ -202,8 +202,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let windowWidth: CGFloat = 420
         let windowHeight: CGFloat = 700
         
-        // Update the content view with current data
-        updateStatsView()
+        // Create a completely fresh view every time the window is opened
+        let animationManager = WindowAnimationManager()
+        let hostingController = NSHostingController(
+            rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                .environmentObject(animationManager)
+        )
+        
+        // Size the view to match the window dimensions
+        hostingController.view.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
+        hostingController.view.wantsLayer = true
+        hostingController.view.layer?.cornerRadius = 12
+        hostingController.view.layer?.masksToBounds = true
+        
+        // Replace the existing content view with the new one
+        statsWindow?.contentView = hostingController.view
+        
+        // Apply styling to the content view
+        statsWindow?.contentView?.wantsLayer = true
+        statsWindow?.contentView?.layer?.cornerRadius = 12
+        statsWindow?.contentView?.layer?.masksToBounds = false
+        statsWindow?.contentView?.layer?.shadowOpacity = 0.3
+        statsWindow?.contentView?.layer?.shadowRadius = 8
+        statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
         
         // Show the window and bring it to the front
         statsWindow?.orderFront(nil)
