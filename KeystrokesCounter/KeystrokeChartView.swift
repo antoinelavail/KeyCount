@@ -114,6 +114,7 @@ struct KeystrokeChartView: View {
         .frame(maxWidth: .infinity)
         .onAppear {
             dataStore.forceRefresh()
+            KeystrokeHistoryManager.shared.printAllHistoryKeys() // Add this line to debug
         }
     }
     

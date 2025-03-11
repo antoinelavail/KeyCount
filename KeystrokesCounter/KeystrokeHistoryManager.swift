@@ -84,4 +84,16 @@ class KeystrokeHistoryManager {
         userDefaults.set(count, forKey: key)
         print("Manually saved \(count) keystrokes for \(currentDateKey)")
     }
+    
+    // Add this method to help debug history data
+    func printAllHistoryKeys() {
+        let allDefaults = userDefaults.dictionaryRepresentation()
+        print("--- All History Keys ---")
+        for (key, value) in allDefaults {
+            if key.hasPrefix(keystrokeHistoryPrefix) {
+                print("\(key): \(value)")
+            }
+        }
+        print("------------------------")
+    }
 }

@@ -54,10 +54,10 @@ class StatsDataStore: ObservableObject {
                 updatedHistoryData.sort(by: { $0.date < $1.date })
             }
             
-            // Ensure we have the correct number of days
-            if updatedHistoryData.count > self.selectedDays {
-                updatedHistoryData = Array(updatedHistoryData.suffix(self.selectedDays))
-            }
+            // Sort by date to ensure chronological order
+            updatedHistoryData.sort(by: { $0.date < $1.date })
+        
+            // Don't limit the data - show all available history
             
             // Update UI on main thread
             DispatchQueue.main.async {
