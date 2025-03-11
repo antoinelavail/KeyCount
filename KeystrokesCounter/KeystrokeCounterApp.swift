@@ -13,6 +13,13 @@ struct KeystrokeTrackerApp: App {
     }
 }
 
+// Extension to check if a key exists in UserDefaults
+extension UserDefaults {
+    func contains(key: String) -> Bool {
+        return object(forKey: key) != nil
+    }
+}
+
 struct VisualEffectView: NSViewRepresentable {
     let material: NSVisualEffectView.Material
     let blendingMode: NSVisualEffectView.BlendingMode
@@ -66,6 +73,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     override init() {
         self.keystrokeCount = UserDefaults.standard.integer(forKey: "keystrokesToday")
         self.totalKeystrokes = UserDefaults.standard.integer(forKey: "totalKeystrokes")
+        
+        // Set default value for clearKeystrokesDaily if not already set
+        if !UserDefaults.standard.contains(key: "clearKeystrokesDaily") {
+            UserDefaults.standard.set(true, forKey: "clearKeystrokesDaily")
+        }
+        
         super.init()
         AppDelegate.instance = self
     }
@@ -98,7 +111,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         // Initialize ApplicationMenu only once
         menu = ApplicationMenu(appDelegate: self)
 
-        // Don't set the menu to allow direct click handling
+        // Set the menu to the status item
+        statusItem.menu = menu.menu
+        
+        // Set direct click handling
         statusItem.button?.action = #selector(statusItemClicked)
         statusItem.button?.target = self
 
@@ -446,6 +462,17 @@ class ApplicationMenu: ObservableObject {
         self.appDelegate = appDelegate
         self.showNumbersOnly = UserDefaults.standard.bool(forKey: "ShowNumbersOnly")
         
+        // Create menu
+        menu = NSMenu()
+        
+        // Add daily reset toggle menu item
+        let resetDailyItem = NSMenuItem(title: "Reset Count Daily", action: #selector(toggleResetDaily), keyEquivalent: "")
+        resetDailyItem.state = appDelegate.clearKeystrokesDaily ? .on : .off
+        menu.addItem(resetDailyItem)
+        
+        // Add separator
+        menu.addItem(NSMenuItem.separator())
+        
         // Check current login item status
         self.launchAtLogin = isLaunchAtLoginEnabled()
     }
@@ -497,6 +524,14 @@ class ApplicationMenu: ObservableObject {
         // Update menu item state
         if let item = menu.item(withTitle: "Launch at Login") {
             item.state = launchAtLogin ? .on : .off
+        }
+    }
+    
+    @objc func toggleResetDaily() {
+        appDelegate.clearKeystrokesDaily.toggle()
+        // Update menu item state
+        if let item = menu.item(withTitle: "Reset Count Daily") {
+            item.state = appDelegate.clearKeystrokesDaily ? .on : .off
         }
     }
 }
