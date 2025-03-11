@@ -113,6 +113,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         if KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
             keystrokeCount = 0
             updateKeystrokesCount()
+            
+            // Reset today's key usage data
+            KeyUsageTracker.shared.resetDailyData()
         }
     }
     
@@ -355,11 +358,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             KeyUsageTracker.shared.recordKeyPress(keyCode: keyCode)
         }
 
+        // Save current day's count regularly (not just at reset)
+        KeystrokeHistoryManager.shared.saveCurrentDayCount(keystrokeCount)
+
         // Check if it's a new day
         if KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
-            // Save yesterday's count
-            KeystrokeHistoryManager.shared.saveDailyCount(keystrokeCount)
-            
             // Reset daily keystrokes count
             keystrokeCount = 1  // Set to 1 because we just counted a keystroke
         }

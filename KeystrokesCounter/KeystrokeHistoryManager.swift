@@ -62,11 +62,22 @@ class KeystrokeHistoryManager {
                 let yesterdayKey = keystrokeHistoryPrefix + lastDate
                 let yesterdayCount = userDefaults.integer(forKey: "keystrokesToday")
                 userDefaults.set(yesterdayCount, forKey: yesterdayKey)
+                
+                // Add this log to debug
+                print("Saved \(yesterdayCount) keystrokes for \(lastDate)")
             }
             
+            // Update the last date to today
             userDefaults.set(currentDateKey, forKey: lastDateKey)
             return true
         }
         return false
+    }
+    
+    // Add this method to manually save today's count
+    func saveCurrentDayCount(_ count: Int) {
+        let key = keystrokeHistoryPrefix + currentDateKey
+        userDefaults.set(count, forKey: key)
+        print("Manually saved \(count) keystrokes for \(currentDateKey)")
     }
 }

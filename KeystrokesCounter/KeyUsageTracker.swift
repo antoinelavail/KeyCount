@@ -359,6 +359,25 @@ class KeyUsageTracker: ObservableObject {
         }
     }
     
+    // Add this method to reset daily data
+    func resetDailyData() {
+        // Clear today's timestamps but keep the counts
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        // For each key, filter out today's timestamps
+        for (keyCode, timestamps) in keyUsageTimestamps {
+            keyUsageTimestamps[keyCode] = timestamps.filter { $0 < today }
+        }
+        
+        // For each shortcut, filter out today's timestamps
+        for (shortcut, timestamps) in shortcutUsageTimestamps {
+            shortcutUsageTimestamps[shortcut] = timestamps.filter { $0 < today }
+        }
+        
+        // Save the updated data
+        saveData()
+    }
+    
     func loadData() {
         if let savedKeyData = UserDefaults.standard.data(forKey: userDefaultsKey),
            let decodedKeyCounts = try? JSONDecoder().decode([UInt16: Int].self, from: savedKeyData) {
