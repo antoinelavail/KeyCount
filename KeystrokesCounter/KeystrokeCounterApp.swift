@@ -44,16 +44,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     private var eventMonitor: Any?
     static private(set) var instance: AppDelegate!
     lazy var statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    // keys for UserDefaults data
-    
-    var clearKeystrokesDaily: Bool {
-        get {
-            return true // Always true, no toggle needed
-        }
-        set {
-            // No-op setter since we don't allow changing this anymore
-        }
-    }
 
     @Published var keystrokeCount: Int {
         didSet {
@@ -73,9 +63,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     override init() {
         self.keystrokeCount = UserDefaults.standard.integer(forKey: "keystrokesToday")
         self.totalKeystrokes = UserDefaults.standard.integer(forKey: "totalKeystrokes")
-        
-        // No need to set default value for clearKeystrokesDaily anymore
-        
+                
         super.init()
         AppDelegate.instance = self
     }
@@ -107,9 +95,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
         // Initialize ApplicationMenu only once
         menu = ApplicationMenu(appDelegate: self)
-
-        // Set the menu to the status item
-        statusItem.menu = menu.menu
         
         // Set direct click handling
         statusItem.button?.action = #selector(statusItemClicked)
@@ -317,7 +302,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     func updateKeystrokesCount() {
         if let button = statusItem.button {
             let formattedCount = formatKeystrokeCount(keystrokeCount)
-            let displayString = menu?.showNumbersOnly == true ? formattedCount : "\(formattedCount) ⌨️"
+            let displayString = "\(formattedCount) ⌨️"
             
             button.title = displayString
 
@@ -443,80 +428,8 @@ class ApplicationMenu: ObservableObject {
     var appDelegate: AppDelegate
     var menu: NSMenu!
     var settingsWindow: NSWindow?
-    @Published var showNumbersOnly: Bool = false {
-        didSet {
-            UserDefaults.standard.set(showNumbersOnly, forKey: "ShowNumbersOnly")
-            appDelegate.updateKeystrokesCount()
-        }
-    }
-    @Published var launchAtLogin: Bool = false {
-        didSet {
-            toggleLaunchAtLogin(enabled: launchAtLogin)
-        }
-    }
 
     init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
-        self.showNumbersOnly = UserDefaults.standard.bool(forKey: "ShowNumbersOnly")
-        
-        // Create menu
-        menu = NSMenu()
-        
-        // Add separator
-        menu.addItem(NSMenuItem.separator())
-        
-        // Check current login item status
-        self.launchAtLogin = isLaunchAtLoginEnabled()
     }
-    
-    // Login item management methods
-    private func isLaunchAtLoginEnabled() -> Bool {
-        if #available(macOS 13.0, *) {
-            // For macOS 13+ we can use SMAppService
-            let service = SMAppService.mainApp
-            return service.status == .enabled
-        } else {
-            // For earlier versions we check using bundle identifier
-            let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-            if let jobs = SMCopyAllJobDictionaries(kSMDomainUserLaunchd)?.takeRetainedValue() as? [[String: AnyObject]] {
-                return jobs.contains { job in
-                    return (job["Label"] as? String) == bundleIdentifier
-                }
-            }
-            return false
-        }
-    }
-    
-    private func toggleLaunchAtLogin(enabled: Bool) {
-        if #available(macOS 13.0, *) {
-            // For macOS 13+ we can use SMAppService
-            let service = SMAppService.mainApp
-            do {
-                if enabled {
-                    if service.status == .notRegistered {
-                        try service.register()
-                    }
-                } else {
-                    if service.status == .enabled {
-                        try service.unregister()
-                    }
-                }
-            } catch {
-                print("Failed to \(enabled ? "enable" : "disable") launch at login: \(error)")
-            }
-        } else {
-            // For earlier versions we use SMLoginItemSetEnabled
-            let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-            SMLoginItemSetEnabled(bundleIdentifier as CFString, enabled)
-        }
-    }
-    
-    @objc func toggleLaunchAtLoginSetting() {
-        launchAtLogin.toggle()
-        // Update menu item state
-        if let item = menu.item(withTitle: "Launch at Login") {
-            item.state = launchAtLogin ? .on : .off
-        }
-    }
-    
 }
