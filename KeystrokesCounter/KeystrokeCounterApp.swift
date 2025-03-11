@@ -48,10 +48,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
     
     var clearKeystrokesDaily: Bool {
         get {
-            UserDefaults.standard.bool(forKey: "clearKeystrokesDaily")
+            return true // Always true, no toggle needed
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: "clearKeystrokesDaily")
+            // No-op setter since we don't allow changing this anymore
         }
     }
 
@@ -74,10 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         self.keystrokeCount = UserDefaults.standard.integer(forKey: "keystrokesToday")
         self.totalKeystrokes = UserDefaults.standard.integer(forKey: "totalKeystrokes")
         
-        // Set default value for clearKeystrokesDaily if not already set
-        if !UserDefaults.standard.contains(key: "clearKeystrokesDaily") {
-            UserDefaults.standard.set(true, forKey: "clearKeystrokesDaily")
-        }
+        // No need to set default value for clearKeystrokesDaily anymore
         
         super.init()
         AppDelegate.instance = self
@@ -128,7 +125,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         initializeStatsWindow()
         
         // Check if we need to reset daily count
-        if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
+        if KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
             keystrokeCount = 0
             updateKeystrokesCount()
         }
@@ -374,7 +371,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
 
         // Check if it's a new day
-        if clearKeystrokesDaily && KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
+        if KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {
             // Save yesterday's count
             KeystrokeHistoryManager.shared.saveDailyCount(keystrokeCount)
             
@@ -465,11 +462,6 @@ class ApplicationMenu: ObservableObject {
         // Create menu
         menu = NSMenu()
         
-        // Add daily reset toggle menu item
-        let resetDailyItem = NSMenuItem(title: "Reset Count Daily", action: #selector(toggleResetDaily), keyEquivalent: "")
-        resetDailyItem.state = appDelegate.clearKeystrokesDaily ? .on : .off
-        menu.addItem(resetDailyItem)
-        
         // Add separator
         menu.addItem(NSMenuItem.separator())
         
@@ -527,11 +519,4 @@ class ApplicationMenu: ObservableObject {
         }
     }
     
-    @objc func toggleResetDaily() {
-        appDelegate.clearKeystrokesDaily.toggle()
-        // Update menu item state
-        if let item = menu.item(withTitle: "Reset Count Daily") {
-            item.state = appDelegate.clearKeystrokesDaily ? .on : .off
-        }
-    }
 }
