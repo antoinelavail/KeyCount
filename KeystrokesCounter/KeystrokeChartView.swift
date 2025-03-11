@@ -113,11 +113,7 @@ struct KeystrokeChartView: View {
         }
         .frame(maxWidth: .infinity)
         .onAppear {
-            // Inject test data (temporary for testing)
-            KeystrokeHistoryManager.shared.injectTestData()
-            
             dataStore.forceRefresh()
-            KeystrokeHistoryManager.shared.printAllHistoryKeys()
         }
     }
     
