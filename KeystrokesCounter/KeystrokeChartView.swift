@@ -79,7 +79,7 @@ struct KeystrokeChartView: View {
                                     }
                                 }
                             }
-                            .chartYScale(domain: 0...(maxKeystrokeCount() * 1.1))
+                            .chartYScale(domain: 0...(Double(maxKeystrokeCount()) * 1.1))
                             .frame(height: 250)
                             .padding()
                         }

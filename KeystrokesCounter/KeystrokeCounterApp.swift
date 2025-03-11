@@ -109,13 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             
             // Reset today's key usage data
             KeyUsageTracker.shared.resetDailyData()
-            
-            // Clean up old data (older than 30 days)
-            KeyUsageTracker.shared.cleanupOldData()
         }
-        
-        // Add a menu item for simulating data
-        menu.addSimulateDataMenuItem()
     }
     
     // New method to create and initialize the window once
@@ -461,57 +455,5 @@ class ApplicationMenu: ObservableObject {
 
     init(appDelegate: AppDelegate) {
         self.appDelegate = appDelegate
-    }
-    
-    func addSimulateDataMenuItem() {
-        if menu == nil {
-            menu = NSMenu()
-        }
-        
-        let simulateItem = NSMenuItem(title: "Simulate Test Data", action: #selector(simulateTestData), keyEquivalent: "")
-        simulateItem.target = self
-        menu.addItem(simulateItem)
-        
-        appDelegate.statusItem.menu = menu
-    }
-    
-    @objc func simulateTestData() {
-        // Get the path to the simulator script
-        if let bundlePath = Bundle.main.resourcePath {
-            let scriptPath = bundlePath + "/KeystrokeDataSimulator.swift"
-            
-            // Check if the file exists
-            let fileManager = FileManager.default
-            if fileManager.fileExists(atPath: scriptPath) {
-                // Make it executable
-                try? fileManager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptPath)
-                
-                // Run the script
-                let task = Process()
-                task.launchPath = "/usr/bin/env"
-                task.arguments = ["swift", scriptPath]
-                task.launch()
-                
-                // Show alert when done
-                task.terminationHandler = { process in
-                    DispatchQueue.main.async {
-                        let alert = NSAlert()
-                        alert.messageText = "Test Data Generated"
-                        alert.informativeText = "Restart the app to see the simulated keystroke data."
-                        alert.alertStyle = .informational
-                        alert.addButton(withTitle: "OK")
-                        alert.runModal()
-                    }
-                }
-            } else {
-                // Show error if script not found
-                let alert = NSAlert()
-                alert.messageText = "Script Not Found"
-                alert.informativeText = "The data simulation script could not be found at: \(scriptPath)"
-                alert.alertStyle = .warning
-                alert.addButton(withTitle: "OK")
-                alert.runModal()
-            }
-        }
     }
 }
