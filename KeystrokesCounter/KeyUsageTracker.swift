@@ -376,6 +376,28 @@ class KeyUsageTracker: ObservableObject {
         
         // Save the updated data
         saveData()
+        
+        // Notify that data has been reset
+        print("Daily keystroke data has been reset")
+    }
+    
+    // Method to clean up old data (older than 30 days)
+    func cleanupOldData() {
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+        
+        // Clean up key timestamps
+        for (keyCode, timestamps) in keyUsageTimestamps {
+            keyUsageTimestamps[keyCode] = timestamps.filter { $0 >= thirtyDaysAgo }
+        }
+        
+        // Clean up shortcut timestamps
+        for (shortcut, timestamps) in shortcutUsageTimestamps {
+            shortcutUsageTimestamps[shortcut] = timestamps.filter { $0 >= thirtyDaysAgo }
+        }
+        
+        // Save the updated data
+        saveData()
+        print("Cleaned up keystroke data older than 30 days")
     }
     
     func loadData() {

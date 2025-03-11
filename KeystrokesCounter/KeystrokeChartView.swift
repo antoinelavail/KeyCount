@@ -65,9 +65,21 @@ struct KeystrokeChartView: View {
                                         x: .value("Date", formatDate(item.date)),
                                         y: .value("Keystrokes", item.count)
                                     )
-                                    .foregroundStyle(Color.blue.gradient)
+                                    .foregroundStyle(
+                                        isToday(item.date) ? 
+                                            Color.blue.gradient : 
+                                            Color.green.opacity(0.7).gradient
+                                    )
+                                    .annotation(position: .top) {
+                                        if item.count > 0 {
+                                            Text("\(item.count)")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
                                 }
                             }
+                            .chartYScale(domain: 0...(maxKeystrokeCount() * 1.1))
                             .frame(height: 250)
                             .padding()
                         }
@@ -117,6 +129,18 @@ struct KeystrokeChartView: View {
             return outputFormatter.string(from: date)
         }
         return dateString
+    }
+    
+    private func isToday(_ dateString: String) -> Bool {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+        return dateString == today
+    }
+    
+    private func maxKeystrokeCount() -> Int {
+        let max = dataStore.historyData.map { $0.count }.max() ?? 1000
+        return max > 0 ? max : 1000
     }
 }
 

@@ -50,7 +50,13 @@ class StatsDataStore: ObservableObject {
                 updatedHistoryData[index] = (date: today, count: currentCount)
             } else {
                 updatedHistoryData.append((date: today, count: currentCount))
+                // Sort by date to ensure chronological order
                 updatedHistoryData.sort(by: { $0.date < $1.date })
+            }
+            
+            // Ensure we have the correct number of days
+            if updatedHistoryData.count > self.selectedDays {
+                updatedHistoryData = Array(updatedHistoryData.suffix(self.selectedDays))
             }
             
             // Update UI on main thread

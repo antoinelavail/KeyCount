@@ -69,6 +69,10 @@ class KeystrokeHistoryManager {
             
             // Update the last date to today
             userDefaults.set(currentDateKey, forKey: lastDateKey)
+            
+            // Reset keystrokesToday to 0
+            userDefaults.set(0, forKey: "keystrokesToday")
+            
             return true
         }
         return false
