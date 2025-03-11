@@ -202,6 +202,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let windowWidth: CGFloat = 420
         let windowHeight: CGFloat = 700
         
+        // Refresh data store before showing window
+        StatsDataStore.shared.forceRefresh()
+        
         // Create a completely fresh view every time the window is opened
         let animationManager = WindowAnimationManager()
         let hostingController = NSHostingController(
@@ -381,6 +384,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
 
         // Save current day's count regularly (not just at reset)
         KeystrokeHistoryManager.shared.saveCurrentDayCount(keystrokeCount)
+        
+        // Update the data store in the background if the stats window is open
+        if let window = statsWindow, window.isVisible {
+            StatsDataStore.shared.refreshDataIfNeeded()
+        }
 
         // Check if it's a new day
         if KeystrokeHistoryManager.shared.resetDailyCountIfNeeded() {

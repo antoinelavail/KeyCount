@@ -255,9 +255,7 @@ struct KeyboardHeatMapView: View {
 
 // Top Keys View
 struct TopKeysView: View {
-    @ObservedObject private var keyTracker = KeyUsageTracker.shared
-    @State private var topKeys: [(keyCode: UInt16, count: Int, label: String)] = []
-    @State private var selectedTimeRange: TimeRange = .today
+    @ObservedObject private var dataStore = StatsDataStore.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -266,7 +264,7 @@ struct TopKeysView: View {
                 .padding(.horizontal)
             
             // Time range selector
-            Picker("Time Range", selection: $selectedTimeRange) {
+            Picker("Time Range", selection: $dataStore.selectedKeysTimeRange) {
                 Text(TimeRange.today.description).tag(TimeRange.today)
                 Text(TimeRange.lastWeek.description).tag(TimeRange.lastWeek)
                 Text(TimeRange.lastMonth.description).tag(TimeRange.lastMonth)
@@ -274,24 +272,24 @@ struct TopKeysView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
-            .onChange(of: selectedTimeRange) { _ in
-                loadTopKeys()
+            .onChange(of: dataStore.selectedKeysTimeRange) { _ in
+                dataStore.forceRefresh()
             }
             
-            if topKeys.isEmpty {
+            if dataStore.topKeys.isEmpty {
                 Text("No key usage data available")
                     .foregroundColor(.secondary)
                     .padding(.vertical, 8)
             } else {
                 VStack(spacing: 6) {
-                    ForEach(0..<min(10, topKeys.count), id: \.self) { index in
+                    ForEach(0..<min(10, dataStore.topKeys.count), id: \.self) { index in
                         HStack {
                             Text("\(index + 1).")
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundColor(.secondary)
                                 .frame(width: 30, alignment: .trailing)
                                 
-                            Text(topKeys[index].label)
+                            Text(dataStore.topKeys[index].label)
                                 .font(.system(.body, design: .monospaced))
                                 .fontWeight(.medium)
                                 .frame(width: 80, alignment: .leading)
@@ -301,14 +299,14 @@ struct TopKeysView: View {
                                         .fill(keyColor(for: index))
                                 )
                                 
-                            Text("\(topKeys[index].count) keystrokes")
+                            Text("\(dataStore.topKeys[index].count) keystrokes")
                                 .font(.body)
                                 
                             Spacer()
                                 
                             // Percentage of total
                             if let totalKeystrokes = getTotalKeystrokes() {
-                                let percentage = Double(topKeys[index].count) / Double(totalKeystrokes) * 100
+                                let percentage = Double(dataStore.topKeys[index].count) / Double(totalKeystrokes) * 100
                                 Text(String(format: "%.1f%%", percentage))
                                     .font(.body)
                                     .foregroundColor(.secondary)
@@ -329,22 +327,12 @@ struct TopKeysView: View {
         .background(.ultraThinMaterial)
         .cornerRadius(10)
         .onAppear {
-            loadTopKeys()
-        }
-    }
-    
-    private func loadTopKeys() {
-        // Perform calculation off the animation path
-        let newTopKeys = keyTracker.getTopKeysForTimeRange(count: 10, timeRange: selectedTimeRange)
-        
-        // Then apply with animation
-        withAnimation(.easeOut(duration: 0.2)) {
-            topKeys = newTopKeys
+            dataStore.forceRefresh()
         }
     }
     
     private func getTotalKeystrokes() -> Int? {
-        let total = topKeys.reduce(0) { $0 + $1.count }
+        let total = dataStore.topKeys.reduce(0) { $0 + $1.count }
         return total > 0 ? total : nil
     }
     

@@ -3,22 +3,9 @@ import Charts
 
 struct KeystrokeChartView: View {
     @EnvironmentObject private var animationManager: WindowAnimationManager
-    @State private var historyData: [(date: String, count: Int)] = []
-    @State private var selectedDays: Int = 7
-    var highlightToday: Bool = false {
-        didSet {
-            if oldValue != highlightToday {
-                loadData()
-            }
-        }
-    }
-    var todayCount: Int = 0 {
-        didSet {
-            if oldValue != todayCount {
-                loadData()
-            }
-        }
-    }
+    @ObservedObject private var dataStore = StatsDataStore.shared
+    var highlightToday: Bool = false
+    var todayCount: Int = 0
     
     var body: some View {
         ScrollView {
@@ -54,18 +41,18 @@ struct KeystrokeChartView: View {
                         .font(.title2)
                         .padding(.horizontal)
                     
-                    Picker("Time Period", selection: $selectedDays) {
+                    Picker("Time Period", selection: $dataStore.selectedDays) {
                         Text("7 Days").tag(7)
                         Text("14 Days").tag(14)
                         Text("30 Days").tag(30)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
-                    .onChange(of: selectedDays) { _ in
-                        loadData()
+                    .onChange(of: dataStore.selectedDays) { _ in
+                        dataStore.forceRefresh()
                     }
                     
-                    if historyData.isEmpty {
+                    if dataStore.historyData.isEmpty {
                         Text("No history data available")
                             .foregroundColor(.secondary)
                             .padding()
@@ -73,7 +60,7 @@ struct KeystrokeChartView: View {
                         // Chart in a rounded blurred container
                         VStack {
                             Chart {
-                                ForEach(historyData, id: \.date) { item in
+                                ForEach(dataStore.historyData, id: \.date) { item in
                                     BarMark(
                                         x: .value("Date", formatDate(item.date)),
                                         y: .value("Keystrokes", item.count)
@@ -114,40 +101,10 @@ struct KeystrokeChartView: View {
         }
         .frame(maxWidth: .infinity)
         .onAppear {
-            loadData()
+            dataStore.forceRefresh()
         }
     }
     
-    private func loadData() {
-        // Get history data
-        var data = KeystrokeHistoryManager.shared.getKeystrokeHistory(days: selectedDays)
-        
-        if highlightToday {
-            // Format today's date
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            let today = dateFormatter.string(from: Date())
-            
-            // Get the current count directly from AppDelegate
-            let currentCount = AppDelegate.instance.keystrokeCount
-            
-            // Check if today is already in the data
-            let containsToday = data.contains(where: { $0.date == today })
-            
-            // If not, or if we need to update it, add/update today's count
-            if !containsToday {
-                data.append((date: today, count: currentCount))
-            } else if let index = data.firstIndex(where: { $0.date == today }) {
-                // Update today's count in the existing data
-                data[index] = (date: today, count: currentCount)
-            }
-            
-            // Sort data by date
-            data.sort(by: { $0.date < $1.date })
-        }
-        
-        historyData = data
-    }
     
     private func formatDate(_ dateString: String) -> String {
         let inputFormatter = DateFormatter()
@@ -165,31 +122,36 @@ struct KeystrokeChartView: View {
 
 // Today's Keystrokes View
 struct TodayKeystrokesView: View {
-    var todayCount: Int
+    @StateObject private var refreshTimer = RefreshTimer()
     
     var body: some View {
         VStack(spacing: 5) {
             Text("Today's Keystrokes")
                 .font(.title)
             
-            Text("\(todayCount)")
+            // Get count directly from AppDelegate and use the timer to force updates
+            Text("\(AppDelegate.instance.keystrokeCount)")
                 .font(.system(size: 48, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
+                .id("keystroke-\(refreshTimer.tick)") // Forces refresh when tick changes
         }
         .frame(maxWidth: .infinity)
         .padding()
         .background(.ultraThinMaterial)
         .cornerRadius(10)
         .padding(.horizontal)
+        .onAppear {
+            refreshTimer.start()
+        }
+        .onDisappear {
+            refreshTimer.stop()
+        }
     }
 }
 
 // Top Shortcuts View (extracted from ShortcutHeatMapView)
 struct TopShortcutsView: View {
-    @ObservedObject private var keyTracker = KeyUsageTracker.shared
-    @State private var topShortcuts: [(shortcut: KeyboardShortcut, count: Int, description: String)] = []
-    @State private var maxCount: Int = 0
-    @State private var selectedTimeRange: TimeRange = .today
+    @ObservedObject private var dataStore = StatsDataStore.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -198,7 +160,7 @@ struct TopShortcutsView: View {
                 .padding(.horizontal)
             
             // Time range selector
-            Picker("Time Range", selection: $selectedTimeRange) {
+            Picker("Time Range", selection: $dataStore.selectedShortcutsTimeRange) {
                 Text(TimeRange.today.description).tag(TimeRange.today)
                 Text(TimeRange.lastWeek.description).tag(TimeRange.lastWeek)
                 Text(TimeRange.lastMonth.description).tag(TimeRange.lastMonth)
@@ -206,24 +168,24 @@ struct TopShortcutsView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
-            .onChange(of: selectedTimeRange) { _ in
-                loadShortcutData()
+            .onChange(of: dataStore.selectedShortcutsTimeRange) { _ in
+                dataStore.forceRefresh()
             }
             
-            if topShortcuts.isEmpty {
+            if dataStore.topShortcuts.isEmpty {
                 Text("No shortcut usage data available")
                     .foregroundColor(.secondary)
                     .padding(.vertical, 8)
             } else {
                 VStack(spacing: 6) {
-                    ForEach(0..<min(10, topShortcuts.count), id: \.self) { index in
+                    ForEach(0..<min(10, dataStore.topShortcuts.count), id: \.self) { index in
                         HStack {
                             Text("\(index + 1).")
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundColor(.secondary)
                                 .frame(width: 30, alignment: .trailing)
                             
-                            Text(topShortcuts[index].description)
+                            Text(dataStore.topShortcuts[index].description)
                                 .font(.system(.body, design: .monospaced))
                                 .fontWeight(.medium)
                                 .frame(minWidth: 100, alignment: .leading)
@@ -233,14 +195,14 @@ struct TopShortcutsView: View {
                                         .fill(shortcutColor(for: index))
                                 )
                             
-                            Text("\(topShortcuts[index].count) times")
+                            Text("\(dataStore.topShortcuts[index].count) times")
                                 .font(.body)
                             
                             Spacer()
                             
                             // Percentage of total
                             if let totalShortcuts = getTotalShortcuts() {
-                                let percentage = Double(topShortcuts[index].count) / Double(totalShortcuts) * 100
+                                let percentage = Double(dataStore.topShortcuts[index].count) / Double(totalShortcuts) * 100
                                 Text(String(format: "%.1f%%", percentage))
                                     .font(.body)
                                     .foregroundColor(.secondary)
@@ -261,24 +223,12 @@ struct TopShortcutsView: View {
         .background(.ultraThinMaterial)
         .cornerRadius(10)
         .onAppear {
-            loadShortcutData()
-        }
-    }
-    
-    private func loadShortcutData() {
-        // Perform calculation off the animation path
-        let newTopShortcuts = keyTracker.getTopShortcutsForTimeRange(count: 10, timeRange: selectedTimeRange)
-        let newMaxCount = newTopShortcuts.first?.count ?? 0
-        
-        // Then apply with animation
-        withAnimation(.easeOut(duration: 0.2)) {
-            topShortcuts = newTopShortcuts
-            maxCount = newMaxCount
+            dataStore.forceRefresh()
         }
     }
     
     private func getTotalShortcuts() -> Int? {
-        let total = topShortcuts.reduce(0) { $0 + $1.count }
+        let total = dataStore.topShortcuts.reduce(0) { $0 + $1.count }
         return total > 0 ? total : nil
     }
     
