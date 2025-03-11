@@ -31,6 +31,7 @@ class KeystrokeHistoryManager {
     func getKeystrokeHistory(days: Int) -> [(date: String, count: Int)] {
         var result: [(date: String, count: Int)] = []
         
+        // First get history for specific days (backward compatibility)
         let calendar = Calendar.current
         let today = Date()
         
@@ -39,11 +40,31 @@ class KeystrokeHistoryManager {
                 let dateString = dateFormatter.string(from: date)
                 let key = keystrokeHistoryPrefix + dateString
                 let count = userDefaults.integer(forKey: key)
-                result.append((date: dateString, count: count))
+                // Only add non-zero counts to avoid cluttering the chart
+                if count > 0 {
+                    result.append((date: dateString, count: count))
+                }
             }
         }
         
-        return result.reversed()
+        // Now also find any other keystroke history entries in UserDefaults
+        let allDefaults = userDefaults.dictionaryRepresentation()
+        for (key, value) in allDefaults {
+            if key.hasPrefix(keystrokeHistoryPrefix) {
+                let dateString = String(key.dropFirst(keystrokeHistoryPrefix.count))
+                
+                // Skip dates we've already added
+                if !result.contains(where: { $0.date == dateString }) {
+                    // Make sure the value is an integer
+                    if let count = value as? Int, count > 0 {
+                        result.append((date: dateString, count: count))
+                    }
+                }
+            }
+        }
+        
+        // Sort by date (ascending)
+        return result.sorted(by: { $0.date < $1.date })
     }
     
     // Check if it's a new day
@@ -95,5 +116,43 @@ class KeystrokeHistoryManager {
             }
         }
         print("------------------------")
+    }
+    
+    // Add test data for development and testing
+    func injectTestData() {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Clear existing data first
+        let allDefaults = userDefaults.dictionaryRepresentation()
+        for (key, _) in allDefaults {
+            if key.hasPrefix(keystrokeHistoryPrefix) {
+                userDefaults.removeObject(forKey: key)
+            }
+        }
+        
+        // Today - moderate usage
+        let todayString = dateFormatter.string(from: today)
+        userDefaults.set(500, forKey: keystrokeHistoryPrefix + todayString)
+        
+        // Yesterday - heavy usage
+        if let yesterday = calendar.date(byAdding: .day, value: -1, to: today) {
+            let yesterdayString = dateFormatter.string(from: yesterday)
+            userDefaults.set(2000, forKey: keystrokeHistoryPrefix + yesterdayString)
+        }
+        
+        // 2 days ago - medium usage
+        if let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today) {
+            let twoDaysAgoString = dateFormatter.string(from: twoDaysAgo)
+            userDefaults.set(1500, forKey: keystrokeHistoryPrefix + twoDaysAgoString)
+        }
+        
+        // Add some data from last week
+        if let lastWeek = calendar.date(byAdding: .day, value: -7, to: today) {
+            let lastWeekString = dateFormatter.string(from: lastWeek)
+            userDefaults.set(1200, forKey: keystrokeHistoryPrefix + lastWeekString)
+        }
+        
+        print("Test data injected for history visualization")
     }
 }
