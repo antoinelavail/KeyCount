@@ -215,6 +215,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             // Update the existing content view instead of replacing it
             self.updateStatsView()
             
+            // IMPORTANT: First explicitly position the window offscreen to the right
+            // This ensures the animation starts from the correct position
+            self.statsWindow?.setFrame(
+                NSRect(
+                    x: screenRect.maxX, // Start completely offscreen
+                    y: screenRect.maxY - windowHeight - 20, // Correct vertical position
+                    width: windowWidth,
+                    height: windowHeight
+                ),
+                display: false // Don't display yet
+            )
+            
             // Show the window and bring it to the front
             self.statsWindow?.orderFront(nil)
             self.statsWindow?.makeKey()
