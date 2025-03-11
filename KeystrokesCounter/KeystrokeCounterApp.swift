@@ -51,18 +51,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         }
     }
 
-    @Published var totalKeystrokes: Int {
-        didSet {
-            UserDefaults.standard.set(totalKeystrokes, forKey: "totalKeystrokes")
-        }
-    }
-
     private var eventTap: CFMachPort?
     var menu: ApplicationMenu!
 
     override init() {
         self.keystrokeCount = UserDefaults.standard.integer(forKey: "keystrokesToday")
-        self.totalKeystrokes = UserDefaults.standard.integer(forKey: "totalKeystrokes")
                 
         super.init()
         AppDelegate.instance = self
@@ -375,7 +368,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         } else {
             // This is a regular keystroke
             keystrokeCount += 1
-            totalKeystrokes += 1
             updateKeystrokesCount()
 
             // Record the key press
