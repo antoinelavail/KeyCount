@@ -313,8 +313,8 @@ struct TopKeysView: View {
                             }
                         }
                         .transition(.move(edge: .leading)) // Simplified transition
-                        .animation(.easeOut(duration: 0.15).delay(Double(index) * 0.02), value: selectedTimeRange)
-                        .id("\(selectedTimeRange)-\(index)")
+                        .animation(.easeOut(duration: 0.15).delay(Double(index) * 0.02), value: dataStore.selectedKeysTimeRange)
+                        .id("\(dataStore.selectedKeysTimeRange)-\(index)")
                     }
                 }
                 .padding(8)

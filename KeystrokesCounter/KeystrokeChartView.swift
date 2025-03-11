@@ -11,7 +11,7 @@ struct KeystrokeChartView: View {
         ScrollView {
             VStack(spacing: 20) {
                 // 1. Today's keystrokes section with simplified animation
-                TodayKeystrokesView(todayCount: todayCount)
+                TodayKeystrokesView()
                     .slideInAnimation(index: 0)
                 
                 // 2. Most used keys section
@@ -209,8 +209,8 @@ struct TopShortcutsView: View {
                             }
                         }
                         .transition(.move(edge: .leading)) // Simplified transition
-                        .animation(.easeOut(duration: 0.15).delay(Double(index) * 0.02), value: selectedTimeRange)
-                        .id("\(selectedTimeRange)-\(index)") // Important for SwiftUI to detect changes
+                        .animation(.easeOut(duration: 0.15).delay(Double(index) * 0.02), value: dataStore.selectedShortcutsTimeRange)
+                        .id("\(dataStore.selectedShortcutsTimeRange)-\(index)") // Important for SwiftUI to detect changes
                     }
                 }
                 .padding(8)
