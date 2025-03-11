@@ -1,27 +1,6 @@
 import SwiftUI
 import Combine
 
-class RefreshTimer: ObservableObject {
-    @Published var tick: Int = 0
-    private var timer: Timer?
-    
-    func start() {
-        // Update every second
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.tick += 1
-        }
-    }
-    
-    func stop() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    deinit {
-        timer?.invalidate()
-    }
-}
-
 class StatsDataStore: ObservableObject {
     static let shared = StatsDataStore()
     
@@ -30,30 +9,27 @@ class StatsDataStore: ObservableObject {
     @Published var topKeys: [(keyCode: UInt16, count: Int, label: String)] = []
     @Published var topShortcuts: [(shortcut: KeyboardShortcut, count: Int, description: String)] = []
     @Published var lastUpdateTime = Date()
+    @Published var isRefreshing = false
     
     // Days selection for history
     @Published var selectedDays: Int = 7
     @Published var selectedKeysTimeRange: TimeRange = .today
     @Published var selectedShortcutsTimeRange: TimeRange = .today
     
-    private var timer: Timer?
-    private var isRefreshing = false
-    
     private init() {
-        // Start a background refresh timer with a reasonable interval
-        timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-            self?.refreshDataIfNeeded()
-        }
+        // Initial refresh
+        refreshData()
     }
     
-    func refreshDataIfNeeded() {
-        // Avoid overlapping refreshes
-        if isRefreshing { return }
+    func refreshData(completion: (() -> Void)? = nil) {
         isRefreshing = true
         
-        // Perform refresh on background thread
+        // Perform refresh on background thread for better UI responsiveness
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else { 
+                completion?()
+                return 
+            }
             
             // Refresh all data types
             let newHistoryData = KeystrokeHistoryManager.shared.getKeystrokeHistory(days: self.selectedDays)
@@ -84,15 +60,14 @@ class StatsDataStore: ObservableObject {
                 self.topShortcuts = newTopShortcuts
                 self.lastUpdateTime = Date()
                 self.isRefreshing = false
+                
+                // Call completion handler if provided
+                completion?()
             }
         }
     }
     
-    func forceRefresh() {
-        refreshDataIfNeeded()
-    }
-    
-    deinit {
-        timer?.invalidate()
+    func forceRefresh(completion: (() -> Void)? = nil) {
+        refreshData(completion: completion)
     }
 }

@@ -122,18 +122,19 @@ struct KeystrokeChartView: View {
 
 // Today's Keystrokes View
 struct TodayKeystrokesView: View {
-    @StateObject private var refreshTimer = RefreshTimer()
+    // Use @State to track the keystroke count and force refreshes
+    @State private var keystrokeCount = AppDelegate.instance.keystrokeCount
     
     var body: some View {
         VStack(spacing: 5) {
             Text("Today's Keystrokes")
                 .font(.title)
             
-            // Get count directly from AppDelegate and use the timer to force updates
+            // Display the current count from AppDelegate directly
             Text("\(AppDelegate.instance.keystrokeCount)")
                 .font(.system(size: 48, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
-                .id("keystroke-\(refreshTimer.tick)") // Forces refresh when tick changes
+                .id("keystroke-\(AppDelegate.instance.keystrokeCount)") // Force refresh when count changes
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -141,10 +142,8 @@ struct TodayKeystrokesView: View {
         .cornerRadius(10)
         .padding(.horizontal)
         .onAppear {
-            refreshTimer.start()
-        }
-        .onDisappear {
-            refreshTimer.stop()
+            // Update local state on appear
+            keystrokeCount = AppDelegate.instance.keystrokeCount
         }
     }
 }

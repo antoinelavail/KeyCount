@@ -202,64 +202,66 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let windowWidth: CGFloat = 420
         let windowHeight: CGFloat = 700
         
-        // Refresh data store before showing window
-        StatsDataStore.shared.forceRefresh()
-        
-        // Create a completely fresh view every time the window is opened
-        let animationManager = WindowAnimationManager()
-        let hostingController = NSHostingController(
-            rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                .environmentObject(animationManager)
-        )
-        
-        // Size the view to match the window dimensions
-        hostingController.view.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
-        hostingController.view.wantsLayer = true
-        hostingController.view.layer?.cornerRadius = 12
-        hostingController.view.layer?.masksToBounds = true
-        
-        // Replace the existing content view with the new one
-        statsWindow?.contentView = hostingController.view
-        
-        // Apply styling to the content view
-        statsWindow?.contentView?.wantsLayer = true
-        statsWindow?.contentView?.layer?.cornerRadius = 12
-        statsWindow?.contentView?.layer?.masksToBounds = false
-        statsWindow?.contentView?.layer?.shadowOpacity = 0.3
-        statsWindow?.contentView?.layer?.shadowRadius = 8
-        statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
-        
-        // Show the window and bring it to the front
-        statsWindow?.orderFront(nil)
-        statsWindow?.makeKey()
-        
-        // Combined fade + RIGHT-TO-LEFT slide animation
-        NSAnimationContext.runAnimationGroup({ context in
-            context.allowsImplicitAnimation = true
-            context.duration = 0.2
-            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        // First refresh data, then show window when data is ready
+        StatsDataStore.shared.forceRefresh { [weak self] in
+            guard let self = self else { return }
             
-            // Animate both position and opacity
-            statsWindow?.animator().setFrame(
-                NSRect(
-                    x: screenRect.maxX - windowWidth - 20,
-                    y: screenRect.maxY - windowHeight - 20,
-                    width: windowWidth,
-                    height: windowHeight
-                ),
-                display: true
+            // Create a completely fresh view with updated data
+            let animationManager = WindowAnimationManager()
+            let hostingController = NSHostingController(
+                rootView: KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
+                    .environmentObject(animationManager)
             )
-            statsWindow?.animator().alphaValue = 1.0
             
-            // Trigger internal animations at 50% of the transition
-            DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.5) {
-                // Post a notification to trigger content animations
-                NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
-            }
-        })
-        
-        // Set up event monitoring to close the window when focus is lost
-        setupEventMonitoring()
+            // Size the view to match the window dimensions
+            hostingController.view.frame = NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight)
+            hostingController.view.wantsLayer = true
+            hostingController.view.layer?.cornerRadius = 12
+            hostingController.view.layer?.masksToBounds = true
+            
+            // Replace the existing content view with the new one
+            self.statsWindow?.contentView = hostingController.view
+            
+            // Apply styling to the content view
+            self.statsWindow?.contentView?.wantsLayer = true
+            self.statsWindow?.contentView?.layer?.cornerRadius = 12
+            self.statsWindow?.contentView?.layer?.masksToBounds = false
+            self.statsWindow?.contentView?.layer?.shadowOpacity = 0.3
+            self.statsWindow?.contentView?.layer?.shadowRadius = 8
+            self.statsWindow?.contentView?.layer?.shadowOffset = CGSize(width: 0, height: -3)
+            
+            // Show the window and bring it to the front
+            self.statsWindow?.orderFront(nil)
+            self.statsWindow?.makeKey()
+            
+            // Combined fade + RIGHT-TO-LEFT slide animation
+            NSAnimationContext.runAnimationGroup({ context in
+                context.allowsImplicitAnimation = true
+                context.duration = 0.2
+                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                
+                // Animate both position and opacity
+                self.statsWindow?.animator().setFrame(
+                    NSRect(
+                        x: screenRect.maxX - windowWidth - 20,
+                        y: screenRect.maxY - windowHeight - 20,
+                        width: windowWidth,
+                        height: windowHeight
+                    ),
+                    display: true
+                )
+                self.statsWindow?.animator().alphaValue = 1.0
+                
+                // Trigger internal animations at 50% of the transition
+                DispatchQueue.main.asyncAfter(deadline: .now() + context.duration * 0.5) {
+                    // Post a notification to trigger content animations
+                    NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
+                }
+            })
+            
+            // Set up event monitoring to close the window when focus is lost
+            self.setupEventMonitoring()
+        }
     }
     
     func setupEventMonitoring() {
@@ -382,12 +384,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             KeyUsageTracker.shared.recordKeyPress(keyCode: keyCode)
         }
 
-        // Save current day's count regularly (not just at reset)
+        // Save current day's count
         KeystrokeHistoryManager.shared.saveCurrentDayCount(keystrokeCount)
         
-        // Update the data store in the background if the stats window is open
+        // If stats window is visible, update data (throttled to every few keystrokes)
         if let window = statsWindow, window.isVisible {
-            StatsDataStore.shared.refreshDataIfNeeded()
+            // Prevent excessive updates by only refreshing periodically
+            if keystrokeCount % 3 == 0 || modifierFlags != 0 {
+                StatsDataStore.shared.refreshData()
+            }
         }
 
         // Check if it's a new day
