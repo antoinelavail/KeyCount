@@ -193,7 +193,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             }
             
             // Trigger animations with a slight delay to ensure data is loaded
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
                 NotificationCenter.default.post(name: .windowTransitionNearing, object: nil)
             }
         }
