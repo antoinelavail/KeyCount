@@ -129,26 +129,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         let windowWidth: CGFloat = 420
         let windowHeight: CGFloat = 700
         
-        // Create a borderless window positioned offscreen to the RIGHT
-        statsWindow = NSWindow(
+        // Create a NSPanel instead of NSWindow - this is better for non-activating UI
+        let panel = NSPanel(
             contentRect: NSRect(
                 x: screenRect.maxX, // Position it offscreen to the right
                 y: screenRect.maxY - windowHeight - 20,
                 width: windowWidth,
                 height: windowHeight
             ),
-            styleMask: [.borderless, .fullSizeContentView],
+            styleMask: [.borderless, .nonactivatingPanel], // Add nonactivatingPanel 
             backing: .buffered,
             defer: false
         )
         
-        statsWindow?.backgroundColor = NSColor.clear
-        statsWindow?.alphaValue = 0.0
-        statsWindow?.isOpaque = true
-        statsWindow?.hasShadow = false
-        statsWindow?.level = .statusBar
-        statsWindow?.delegate = self
-        statsWindow?.titlebarAppearsTransparent = true
+        // Configure the panel
+        panel.backgroundColor = NSColor.clear
+        panel.alphaValue = 0.0
+        panel.isOpaque = false
+        panel.hasShadow = true
+        panel.level = .floating // Better for showing over other windows
+        panel.delegate = self
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isFloatingPanel = true
+        panel.becomesKeyOnlyIfNeeded = true // Important!
+        panel.titlebarAppearsTransparent = true
+        
+        // Assign to statsWindow
+        statsWindow = panel
         
         // Configure the view with a notification publisher for animation timing
         let animationManager = WindowAnimationManager()
@@ -227,9 +234,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
                 display: false // Don't display yet
             )
             
-            // Show the window and bring it to the front
-            self.statsWindow?.orderFront(nil)
-            self.statsWindow?.makeKey()
+            // Show the window and bring it to the front - use orderFrontRegardless
+            self.statsWindow?.orderFrontRegardless() // Changed from orderFront(nil)
+            // Remove makeKey() call as it's unnecessary and causing warnings
             
             // Combined fade + RIGHT-TO-LEFT slide animation
             NSAnimationContext.runAnimationGroup({ context in
