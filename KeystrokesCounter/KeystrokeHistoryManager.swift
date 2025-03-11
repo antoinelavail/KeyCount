@@ -31,34 +31,34 @@ class KeystrokeHistoryManager {
     func getKeystrokeHistory(days: Int) -> [(date: String, count: Int)] {
         var result: [(date: String, count: Int)] = []
         
-        // First get history for specific days (backward compatibility)
+        // Get current date and calculate cutoff date
         let calendar = Calendar.current
         let today = Date()
+        let cutoffDate = calendar.date(byAdding: .day, value: -(days-1), to: today)!
+        let cutoffDateString = dateFormatter.string(from: cutoffDate)
         
-        for i in 0..<days {
-            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
-                let dateString = dateFormatter.string(from: date)
-                let key = keystrokeHistoryPrefix + dateString
-                let count = userDefaults.integer(forKey: key)
-                // Only add non-zero counts to avoid cluttering the chart
-                if count > 0 {
-                    result.append((date: dateString, count: count))
-                }
-            }
-        }
-        
-        // Now also find any other keystroke history entries in UserDefaults
+        // Get all history entries
         let allDefaults = userDefaults.dictionaryRepresentation()
         for (key, value) in allDefaults {
             if key.hasPrefix(keystrokeHistoryPrefix) {
                 let dateString = String(key.dropFirst(keystrokeHistoryPrefix.count))
                 
-                // Skip dates we've already added
-                if !result.contains(where: { $0.date == dateString }) {
-                    // Make sure the value is an integer
+                // Only include dates within the selected time period
+                if dateString >= cutoffDateString {
                     if let count = value as? Int, count > 0 {
                         result.append((date: dateString, count: count))
                     }
+                }
+            }
+        }
+        
+        // Make sure we include all days in the range, even those with 0 keystrokes
+        for i in 0..<days {
+            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
+                let dateString = dateFormatter.string(from: date)
+                if !result.contains(where: { $0.date == dateString }) {
+                    // Add with 0 count
+                    result.append((date: dateString, count: 0))
                 }
             }
         }
