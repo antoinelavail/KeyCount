@@ -182,7 +182,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
             if let hostingController = window.contentViewController as? NSHostingController<KeystrokeChartView> {
                 // Update the existing view's properties
                 hostingController.rootView = KeystrokeChartView(highlightToday: true, todayCount: keystrokeCount)
-                    .environmentObject(animationManager)
+                    .environmentObject(animationManager) as! KeystrokeChartView
             } else {
                 // Create a new controller only if needed (first time)
                 let hostingController = NSHostingController(
@@ -368,10 +368,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDe
         
         // If stats window is visible, update data (throttled to every few keystrokes)
         if let window = statsWindow, window.isVisible {
-            // Prevent excessive updates by only refreshing periodically
-            if keystrokeCount % 3 == 0 || modifierFlags != 0 {
-                StatsDataStore.shared.refreshData()
-            }
+            StatsDataStore.shared.refreshData()
         }
 
         // Check if it's a new day
